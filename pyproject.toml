@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=75,<76"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astraforge-backend"
+version = "0.4.0"
+description = "FastAPI backend for AstraForge crypto market data and trading services"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
+  "pydantic-settings>=2.6,<3",
+  "sqlalchemy>=2.0.36,<3",
+  "psycopg[binary]>=3.2,<4",
+  "alembic>=1.14,<2",
+  "uvicorn[standard]>=0.32,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.9,<1",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "PT", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# If a post-submit order lookup confirms Binance has no matching order,
+# preserve the original submission failure as the primary adapter error.
+"app/services/execution.py" = ["B904"]
+# The atomic rollback regression intentionally groups related writes inside
+# one raises block, and the recovery assertions retain paired row checks.
+"tests/unit/test_persistence.py" = ["PT012", "PT018"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 90
