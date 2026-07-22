@@ -120,9 +120,7 @@ def test_lifecycle_reconciliation_classifies_required_be05_mismatches() -> None:
     ]
 
     report = LifecycleMismatchDetectionService(
-        _OrderSource(
-            _order_report(OrderReconciliationState.DRIFT_DETECTED, order_findings)
-        ),
+        _OrderSource(_order_report(OrderReconciliationState.DRIFT_DETECTED, order_findings)),
         _PositionSource(
             _position_report(
                 PositionReconciliationState.DRIFT_DETECTED,

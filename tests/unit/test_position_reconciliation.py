@@ -74,9 +74,7 @@ class _Client:
         *,
         error: Exception | None = None,
     ) -> None:
-        self._positions = positions or [
-            {"symbol": "BTCUSDT", "positionAmt": "0.01"}
-        ]
+        self._positions = positions or [{"symbol": "BTCUSDT", "positionAmt": "0.01"}]
         self._error = error
 
     def positions(self) -> list[dict[str, object]]:
@@ -123,9 +121,7 @@ def test_position_reconciliation_detects_external_close_and_fails_closed() -> No
     report = service.reconcile()
 
     assert report.state is PositionReconciliationState.DRIFT_DETECTED
-    assert {item.code for item in report.findings} == {
-        "EXTERNAL_POSITION_CLOSE_DETECTED"
-    }
+    assert {item.code for item in report.findings} == {"EXTERNAL_POSITION_CLOSE_DETECTED"}
     assert gate.snapshot().automation_ready is False
 
 
@@ -178,9 +174,7 @@ def test_position_reconciliation_detects_duplicate_local_open_trade() -> None:
 
     report = service.reconcile()
 
-    assert "DUPLICATE_LOCAL_OPEN_POSITION" in {
-        item.code for item in report.findings
-    }
+    assert "DUPLICATE_LOCAL_OPEN_POSITION" in {item.code for item in report.findings}
 
 
 def test_position_reconciliation_fails_closed_without_private_client() -> None:

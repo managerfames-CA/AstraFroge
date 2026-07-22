@@ -104,13 +104,10 @@ class ScannerEngine(ScannerSetupEngine):
                 Decimal("0.65"),
                 Decimal("0.90"),
             )
-            + Decimal("4")
-            * _n_up(_frame_value(e0, "volume_ratio"), Decimal("1.10"), Decimal("2"))
+            + Decimal("4") * _n_up(_frame_value(e0, "volume_ratio"), Decimal("1.10"), Decimal("2"))
             + Decimal("3")
             * _n_up(
-                _directional_histogram(
-                    _frame_value(e0, "macd_histogram"), direction
-                )
+                _directional_histogram(_frame_value(e0, "macd_histogram"), direction)
                 / _frame_value(e0, "atr14"),
                 D0,
                 Decimal("0.10"),
@@ -120,13 +117,10 @@ class ScannerEngine(ScannerSetupEngine):
 
         rsi_target = Decimal("60") if direction is ScannerDirection.LONG else Decimal("40")
         momentum = (
-            Decimal("4.5")
-            * _n_target(_frame_value(s0, "rsi14"), rsi_target, Decimal("15"))
+            Decimal("4.5") * _n_target(_frame_value(s0, "rsi14"), rsi_target, Decimal("15"))
             + Decimal("4.5")
             * _n_up(
-                _directional_histogram(
-                    _frame_value(s0, "macd_histogram"), direction
-                )
+                _directional_histogram(_frame_value(s0, "macd_histogram"), direction)
                 / _frame_value(s0, "atr14"),
                 D0,
                 Decimal("0.10"),
@@ -144,39 +138,32 @@ class ScannerEngine(ScannerSetupEngine):
             )
             + Decimal("3")
             * _n_up(
-                _directional_histogram(
-                    _frame_value(e0, "macd_histogram"), direction
-                )
+                _directional_histogram(_frame_value(e0, "macd_histogram"), direction)
                 / _frame_value(e0, "atr14"),
                 D0,
                 Decimal("0.10"),
             )
         )
 
-        volume = (
-            Decimal("4")
-            * _n_up(
-                _frame_value(s0, "volume_ratio"),
-                SETUP_MINIMUM_VOLUME[match.setup],
-                Decimal("2.50"),
-            )
-            + Decimal("6")
-            * _n_up(
-                _frame_value(e0, "volume_ratio"),
-                Decimal("1.10"),
-                Decimal("2.50"),
-            )
+        volume = Decimal("4") * _n_up(
+            _frame_value(s0, "volume_ratio"),
+            SETUP_MINIMUM_VOLUME[match.setup],
+            Decimal("2.50"),
+        ) + Decimal("6") * _n_up(
+            _frame_value(e0, "volume_ratio"),
+            Decimal("1.10"),
+            Decimal("2.50"),
         )
 
         quote_volume_ratio = ctx.universe.quote_volume / Decimal("10000000")
         quote_quality = _clamp(quote_volume_ratio.log10() / Decimal("2"))
-        spread_quality = _clamp(
-            (Decimal("10") - ctx.universe.spread_bps) / Decimal("10")
-        )
+        spread_quality = _clamp((Decimal("10") - ctx.universe.spread_bps) / Decimal("10"))
         liquidity = Decimal("3") * quote_quality + Decimal("2") * spread_quality
-        freshness = Decimal("5") * (
-            ctx.freshness["1h"] + ctx.freshness["15m"] + ctx.freshness["5m"]
-        ) / Decimal("3")
+        freshness = (
+            Decimal("5")
+            * (ctx.freshness["1h"] + ctx.freshness["15m"] + ctx.freshness["5m"])
+            / Decimal("3")
+        )
 
         components = {
             "trend": trend,
@@ -190,16 +177,13 @@ class ScannerEngine(ScannerSetupEngine):
         raw_score = _clamp(sum(components.values(), D0), D0, D100)
 
         data_completeness = sum(
-            (
-                min(Decimal(ctx.counts[key]) / Decimal("250"), D1)
-                for key in ("1h", "15m", "5m")
-            ),
+            (min(Decimal(ctx.counts[key]) / Decimal("250"), D1) for key in ("1h", "15m", "5m")),
             D0,
         ) / Decimal("3")
         freshness_margin = sum(ctx.freshness.values(), D0) / Decimal("3")
-        rule_margin = Decimal("0.60") * (match.setup_points / Decimal("25")) + Decimal(
-            "0.40"
-        ) * (entry / Decimal("20"))
+        rule_margin = Decimal("0.60") * (match.setup_points / Decimal("25")) + Decimal("0.40") * (
+            entry / Decimal("20")
+        )
 
         # The first three votes are one because EvaluationContext is created only
         # after the exact regime EMA-stack, structure, and MACD gates pass.
@@ -214,20 +198,10 @@ class ScannerEngine(ScannerSetupEngine):
             )
         )
         vote_15m_histogram = Decimal(
-            int(
-                _directional_histogram(
-                    _frame_value(s0, "macd_histogram"), direction
-                )
-                > 0
-            )
+            int(_directional_histogram(_frame_value(s0, "macd_histogram"), direction) > 0)
         )
         vote_5m_histogram = Decimal(
-            int(
-                _directional_histogram(
-                    _frame_value(e0, "macd_histogram"), direction
-                )
-                > 0
-            )
+            int(_directional_histogram(_frame_value(e0, "macd_histogram"), direction) > 0)
         )
         votes = (
             vote_1h_ema_stack

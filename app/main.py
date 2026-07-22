@@ -49,13 +49,7 @@ def _audit_mutation(request: Request, *, request_id: str, status_code: int) -> N
     audit = getattr(request.state, "mutation_audit", None)
     if not isinstance(audit, dict):
         return
-    outcome = (
-        "success"
-        if status_code < 400
-        else "rejected"
-        if status_code < 500
-        else "failed"
-    )
+    outcome = "success" if status_code < 400 else "rejected" if status_code < 500 else "failed"
     mutation_logger.info(
         "Mutation request audited",
         extra={

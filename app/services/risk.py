@@ -111,9 +111,7 @@ class RiskService:
             signal_engine_state=signal_status.state.value,
             account_snapshot_available=snapshot is not None,
             account_can_trade=snapshot.can_trade if snapshot is not None else False,
-            wallet_balance_usdt=(
-                snapshot.wallet_balance_usdt if snapshot is not None else None
-            ),
+            wallet_balance_usdt=(snapshot.wallet_balance_usdt if snapshot is not None else None),
             available_balance_usdt=(
                 snapshot.available_balance_usdt if snapshot is not None else None
             ),
@@ -123,12 +121,8 @@ class RiskService:
             daily_unrealized_pnl_usdt=(
                 snapshot.daily_unrealized_pnl_usdt if snapshot is not None else None
             ),
-            daily_net_pnl_usdt=(
-                snapshot.daily_net_pnl_usdt if snapshot is not None else None
-            ),
-            daily_pnl_percent=(
-                snapshot.daily_pnl_percent if snapshot is not None else None
-            ),
+            daily_net_pnl_usdt=(snapshot.daily_net_pnl_usdt if snapshot is not None else None),
+            daily_pnl_percent=(snapshot.daily_pnl_percent if snapshot is not None else None),
             risk_per_trade_percent=self._settings.risk_per_trade_percent,
             daily_loss_limit_percent=self._settings.risk_daily_loss_limit_percent,
             daily_profit_lock_percent=self._settings.risk_daily_profit_lock_percent,
@@ -220,15 +214,9 @@ class RiskService:
                             + reserved_margin
                             + required_margin
                         )
-                        if (
-                            projected_margin
-                            > self._settings.risk_max_margin_exposure_usdt
-                        ):
+                        if projected_margin > self._settings.risk_max_margin_exposure_usdt:
                             reason = RiskRejectionCode.MAX_MARGIN_EXPOSURE_REACHED
-                        elif (
-                            required_margin
-                            > snapshot.available_balance_usdt - reserved_margin
-                        ):
+                        elif required_margin > snapshot.available_balance_usdt - reserved_margin:
                             reason = RiskRejectionCode.AVAILABLE_BALANCE_INSUFFICIENT
 
             if reason is not None:
@@ -303,9 +291,7 @@ class RiskService:
             recommended_quantity=quantity,
             position_notional_usdt=notional,
             required_margin_usdt=required_margin,
-            wallet_balance_usdt=(
-                snapshot.wallet_balance_usdt if snapshot is not None else None
-            ),
+            wallet_balance_usdt=(snapshot.wallet_balance_usdt if snapshot is not None else None),
             available_balance_usdt=(
                 snapshot.available_balance_usdt if snapshot is not None else None
             ),
@@ -315,15 +301,9 @@ class RiskService:
             daily_unrealized_pnl_usdt=(
                 snapshot.daily_unrealized_pnl_usdt if snapshot is not None else None
             ),
-            daily_net_pnl_usdt=(
-                snapshot.daily_net_pnl_usdt if snapshot is not None else None
-            ),
-            daily_pnl_percent=(
-                snapshot.daily_pnl_percent if snapshot is not None else None
-            ),
-            open_position_count=(
-                len(snapshot.open_positions) if snapshot is not None else 0
-            ),
+            daily_net_pnl_usdt=(snapshot.daily_net_pnl_usdt if snapshot is not None else None),
+            daily_pnl_percent=(snapshot.daily_pnl_percent if snapshot is not None else None),
+            open_position_count=(len(snapshot.open_positions) if snapshot is not None else 0),
             current_margin_exposure_usdt=(
                 snapshot.current_margin_exposure_usdt if snapshot is not None else _D0
             ),
@@ -340,11 +320,7 @@ class RiskService:
     ) -> tuple[Decimal, Decimal, Decimal, Decimal]:
         assert signal.stop_loss_price is not None
         stop_distance = abs(signal.entry_trigger_price - signal.stop_loss_price)
-        risk_budget = (
-            snapshot.wallet_balance_usdt
-            * self._settings.risk_per_trade_percent
-            / _D100
-        )
+        risk_budget = snapshot.wallet_balance_usdt * self._settings.risk_per_trade_percent / _D100
         quantity = risk_budget / stop_distance
         notional = quantity * signal.entry_trigger_price
         required_margin = notional / Decimal(leverage)
@@ -384,14 +360,12 @@ class RiskService:
             return RiskRejectionCode.MAX_MARGIN_EXPOSURE_NOT_CONFIGURED
         if (
             self._settings.risk_daily_loss_limit_percent > 0
-            and snapshot.daily_pnl_percent
-            <= -self._settings.risk_daily_loss_limit_percent
+            and snapshot.daily_pnl_percent <= -self._settings.risk_daily_loss_limit_percent
         ):
             return RiskRejectionCode.DAILY_LOSS_LIMIT_REACHED
         if (
             self._settings.risk_daily_profit_lock_percent > 0
-            and snapshot.daily_pnl_percent
-            >= self._settings.risk_daily_profit_lock_percent
+            and snapshot.daily_pnl_percent >= self._settings.risk_daily_profit_lock_percent
         ):
             return RiskRejectionCode.DAILY_PROFIT_LOCK_REACHED
         return None
@@ -448,11 +422,7 @@ class RiskService:
             open_positions.append(
                 _OpenPosition(
                     symbol=symbol,
-                    direction=(
-                        ScannerDirection.LONG
-                        if amount > 0
-                        else ScannerDirection.SHORT
-                    ),
+                    direction=(ScannerDirection.LONG if amount > 0 else ScannerDirection.SHORT),
                 )
             )
 
@@ -472,11 +442,7 @@ class RiskService:
         daily_unrealized = reported_unrealized if not open_positions else _D0
         daily_net = realized + daily_unrealized
         day_start_equity = wallet - realized
-        daily_percent = (
-            daily_net / day_start_equity * _D100
-            if day_start_equity > 0
-            else _D0
-        )
+        daily_percent = daily_net / day_start_equity * _D100 if day_start_equity > 0 else _D0
         return _AccountSnapshot(
             captured_at=now,
             can_trade=can_trade,
@@ -513,9 +479,7 @@ class RiskService:
         try:
             value = Decimal(str(payload[key]))
         except (InvalidOperation, ValueError, TypeError) as exc:
-            raise _SnapshotError(
-                RiskRejectionCode.PRIVATE_ACCOUNT_PAYLOAD_INVALID
-            ) from exc
+            raise _SnapshotError(RiskRejectionCode.PRIVATE_ACCOUNT_PAYLOAD_INVALID) from exc
         if not value.is_finite() or (nonnegative and value < 0):
             raise _SnapshotError(RiskRejectionCode.PRIVATE_ACCOUNT_PAYLOAD_INVALID)
         return value

@@ -124,9 +124,7 @@ def test_scanner_api_contract(settings) -> None:  # type: ignore[no-untyped-def]
         assert response.json()["summary"]["evaluated_symbols"] == 1
         assert response.json()["summary"]["audits"][0]["code"] == "SETUP_NOT_DETECTED"
         assert client.get("/api/v1/scanner/runs/latest").json()["run_id"] == "run-1"
-        assert client.get(
-            "/api/v1/scanner/candidates", params={"symbol": "***"}
-        ).status_code == 422
+        assert client.get("/api/v1/scanner/candidates", params={"symbol": "***"}).status_code == 422
 
 
 def test_latest_run_404(settings) -> None:  # type: ignore[no-untyped-def]

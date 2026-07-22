@@ -90,7 +90,10 @@ def _context_for(item: UniverseCandidate) -> EvaluationContext:
 def test_full_scan_evaluates_entire_universe_then_caps_selection() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), LargeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            LargeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
 
         async def evaluate(
@@ -133,14 +136,20 @@ def test_full_scan_evaluates_entire_universe_then_caps_selection() -> None:
 def test_full_scan_stale_universe_and_symbol_failure_classification() -> None:
     async def scenario() -> None:
         stale = ScannerService(
-            FakeMarket(), StaleUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            StaleUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         stale_run = await stale.run_now()
         assert stale_run.status is ScannerRunStatus.FAILED
         assert stale_run.audits[0].code == "UNIVERSE_STALE"
 
         non_data = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
 
         async def reject_trend(
@@ -159,7 +168,10 @@ def test_full_scan_stale_universe_and_symbol_failure_classification() -> None:
         assert non_data_run.audits[0].code == "TREND_SIDEWAYS"
 
         unexpected = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
 
         async def crash(
@@ -196,7 +208,10 @@ def test_full_scan_reentry_duplicate_and_terminal_selection_paths() -> None:
             )
 
         terminal_key = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         terminal_key._terminal_keys.add(template.candidate_id)
         terminal_key._evaluate_symbol = MethodType(evaluate, terminal_key)  # type: ignore[method-assign]
@@ -205,20 +220,28 @@ def test_full_scan_reentry_duplicate_and_terminal_selection_paths() -> None:
         assert terminal_key_run.audits[-1].code == "REENTRY_COOLDOWN_ACTIVE"
 
         cooldown = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
-        cooldown._terminal_history[(
-            template.symbol,
-            template.direction,
-            template.setup,
-        )] = NOW
+        cooldown._terminal_history[
+            (
+                template.symbol,
+                template.direction,
+                template.setup,
+            )
+        ] = NOW
         cooldown._evaluate_symbol = MethodType(evaluate, cooldown)  # type: ignore[method-assign]
         cooldown_run = await cooldown.run_now()
         assert cooldown_run.selected_candidates == 0
         assert cooldown_run.audits[-1].code == "REENTRY_COOLDOWN_ACTIVE"
 
         qualified = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         existing = _candidate_for_service(lifecycle=CandidateLifecycle.QUALIFIED)
         qualified._candidates[existing.candidate_id] = existing
@@ -232,7 +255,10 @@ def test_full_scan_reentry_duplicate_and_terminal_selection_paths() -> None:
         assert "DUPLICATE_CANDIDATE_UPDATED" in retained.audit_codes
 
         terminal = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         rejected = template.model_copy(
             update={
@@ -262,7 +288,10 @@ def test_full_scan_reentry_duplicate_and_terminal_selection_paths() -> None:
 
 def test_run_history_is_bounded() -> None:
     service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+        FakeMarket(),
+        FakeUniverse(),
+        FakeIndicators(),
+        clock=FakeClock(),  # type: ignore[arg-type]
     )
     for index in range(SCANNER_RUN_HISTORY_LIMIT + 5):
         service._append_run(
@@ -291,7 +320,10 @@ def test_terminal_candidate_and_history_retention_are_bounded(
         2,
     )
     service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+        FakeMarket(),
+        FakeUniverse(),
+        FakeIndicators(),
+        clock=FakeClock(),  # type: ignore[arg-type]
     )
 
     candidate_ids: list[str] = []
@@ -318,7 +350,10 @@ def test_terminal_candidate_and_history_retention_are_bounded(
 def test_pruned_terminal_payload_cannot_reactivate() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         template = _candidate_for_service(lifecycle=CandidateLifecycle.EXPIRED)
         service._terminal_keys.add(template.candidate_id)
@@ -355,7 +390,10 @@ def test_pruned_terminal_payload_cannot_reactivate() -> None:
 def test_start_schedules_immediate_scan_without_waiting_for_completion() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         started = asyncio.Event()
         release = asyncio.Event()
@@ -397,7 +435,10 @@ def test_runtime_clock_boundary_and_abstract_operations() -> None:
         assert boundary == NOW + timedelta(minutes=5)
 
         runtime = ScannerRuntimeBase(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),  # type: ignore[arg-type]
         )
         with pytest.raises(NotImplementedError):
             await runtime.full_scan()

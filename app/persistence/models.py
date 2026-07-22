@@ -115,9 +115,7 @@ class ExecutionCommandRow(Base):
 class ExecutionCommandTransitionRow(Base):
     __tablename__ = "execution_command_transitions"
     __table_args__ = (
-        UniqueConstraint(
-            "command_id", "sequence", name="uq_execution_command_transition_sequence"
-        ),
+        UniqueConstraint("command_id", "sequence", name="uq_execution_command_transition_sequence"),
         Index(
             "ix_execution_command_transition_changed",
             "command_id",

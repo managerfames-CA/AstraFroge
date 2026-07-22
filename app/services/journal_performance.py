@@ -114,25 +114,15 @@ class JournalPerformanceService:
         snapshot = self._verification_snapshot()
         records = list(snapshot.records)
         if filters.symbol is not None:
-            records = [
-                item for item in records if item.trade.symbol == filters.symbol
-            ]
+            records = [item for item in records if item.trade.symbol == filters.symbol]
         if filters.direction is not None:
-            records = [
-                item for item in records if item.trade.direction is filters.direction
-            ]
+            records = [item for item in records if item.trade.direction is filters.direction]
         if filters.min_grade is not None:
             records = [
-                item
-                for item in records
-                if self._meets_min_grade(item.trade, filters.min_grade)
+                item for item in records if self._meets_min_grade(item.trade, filters.min_grade)
             ]
         if filters.close_reason is not None:
-            records = [
-                item
-                for item in records
-                if item.trade.closed_reason is filters.close_reason
-            ]
+            records = [item for item in records if item.trade.closed_reason is filters.close_reason]
 
         if filters.sort_by is JournalSortBy.REALIZED_PNL_DESC:
             records = sorted(
@@ -186,24 +176,11 @@ class JournalPerformanceService:
         window_records = [
             record
             for record in snapshot.records
-            if record.trade.closed_at is not None
-            and record.trade.closed_at >= window_started_at
+            if record.trade.closed_at is not None and record.trade.closed_at >= window_started_at
         ]
-        winning = [
-            record
-            for record in window_records
-            if record.costs.net_realized_pnl_usdt > 0
-        ]
-        losing = [
-            record
-            for record in window_records
-            if record.costs.net_realized_pnl_usdt < 0
-        ]
-        breakeven = [
-            record
-            for record in window_records
-            if record.costs.net_realized_pnl_usdt == 0
-        ]
+        winning = [record for record in window_records if record.costs.net_realized_pnl_usdt > 0]
+        losing = [record for record in window_records if record.costs.net_realized_pnl_usdt < 0]
+        breakeven = [record for record in window_records if record.costs.net_realized_pnl_usdt == 0]
         closed_count = len(window_records)
         realized_pnl = sum(
             (record.costs.net_realized_pnl_usdt for record in window_records),
@@ -214,11 +191,7 @@ class JournalPerformanceService:
             Decimal("0"),
         )
         win_rate = (
-            (
-                Decimal(len(winning))
-                / Decimal(closed_count)
-                * Decimal("100")
-            ).quantize(
+            (Decimal(len(winning)) / Decimal(closed_count) * Decimal("100")).quantize(
                 Decimal("0.01"),
                 rounding=ROUND_HALF_UP,
             )
@@ -301,9 +274,7 @@ class JournalPerformanceService:
                 rejection_codes.append(exc.code)
             except BinanceDemoPrivateClientError:
                 rejected_count += 1
-                rejection_codes.append(
-                    "JOURNAL_EXCHANGE_VERIFICATION_UNAVAILABLE"
-                )
+                rejection_codes.append("JOURNAL_EXCHANGE_VERIFICATION_UNAVAILABLE")
             except Exception:
                 rejected_count += 1
                 rejection_codes.append("JOURNAL_EXCHANGE_VERIFICATION_INVALID")
@@ -336,11 +307,7 @@ class JournalPerformanceService:
             for record in records
             for transaction_id in record.costs.income_transaction_ids
         )
-        ambiguous_ids = {
-            transaction_id
-            for transaction_id, count in counts.items()
-            if count > 1
-        }
+        ambiguous_ids = {transaction_id for transaction_id, count in counts.items() if count > 1}
         if not ambiguous_ids:
             return records, 0
         accepted = [
@@ -353,11 +320,8 @@ class JournalPerformanceService:
     def _candidate_closed_trades(self) -> list[DemoTradeRecord]:
         return [
             trade
-            for trade in self._trade_management.trades(
-                TradeListFilters(include_closed=True)
-            ).trades
-            if trade.lifecycle is DemoTradeLifecycle.CLOSED
-            and trade.closed_at is not None
+            for trade in self._trade_management.trades(TradeListFilters(include_closed=True)).trades
+            if trade.lifecycle is DemoTradeLifecycle.CLOSED and trade.closed_at is not None
         ]
 
     @staticmethod
@@ -373,9 +337,7 @@ class JournalPerformanceService:
             "DEMO_PRIVATE_API_NOT_CONFIGURED",
             "JOURNAL_EXCHANGE_VERIFICATION_UNAVAILABLE",
         }
-        if len(snapshot.records) == 0 and unavailable_codes.intersection(
-            snapshot.rejection_codes
-        ):
+        if len(snapshot.records) == 0 and unavailable_codes.intersection(snapshot.rejection_codes):
             return JournalPerformanceState.EXCHANGE_VERIFICATION_UNAVAILABLE
         return JournalPerformanceState.SOURCE_VERIFICATION_INCOMPLETE
 
@@ -434,9 +396,5 @@ class JournalPerformanceService:
             "B+": 1,
             "Reject": 0,
         }
-        trade_rank = (
-            ranking.get(trade.grade.value, -1)
-            if trade.grade is not None
-            else -1
-        )
+        trade_rank = ranking.get(trade.grade.value, -1) if trade.grade is not None else -1
         return trade_rank >= ranking[minimum.value]

@@ -114,10 +114,7 @@ def test_journal_performance_api_contract(settings) -> None:  # type: ignore[no-
         assert status.json()["state"] == "READY"
         assert status.json()["verified_fill_pnl_required"] is True
         assert status.json()["verified_actual_costs_required"] is True
-        assert (
-            status.json()["summary"]["pnl_source"]
-            == "VERIFIED_FILLS_NET_ACTUAL_COSTS"
-        )
+        assert status.json()["summary"]["pnl_source"] == "VERIFIED_FILLS_NET_ACTUAL_COSTS"
         journal = client.get(
             "/api/v1/journal-performance/journal",
             params={
@@ -135,10 +132,7 @@ def test_journal_performance_api_contract(settings) -> None:  # type: ignore[no-
         assert payload["verified_actual_costs_only"] is True
         assert payload["entries"][0]["verified_fill_quantity"] == "1"
         assert payload["entries"][0]["actual_costs_verified"] is True
-        assert (
-            payload["entries"][0]["pnl_source"]
-            == "VERIFIED_FILLS_NET_ACTUAL_COSTS"
-        )
+        assert payload["entries"][0]["pnl_source"] == "VERIFIED_FILLS_NET_ACTUAL_COSTS"
         performance = client.get(
             "/api/v1/journal-performance/performance",
             params={"lookback_days": 30},

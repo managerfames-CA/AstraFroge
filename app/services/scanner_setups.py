@@ -182,8 +182,7 @@ class ScannerSetupEngine(ScannerEngineBase):
         points = (
             Decimal("8.75") * _n_down(distance / atr1, D0, Decimal("0.25"))
             + Decimal("6.25") * _n_up(_body(s0.candle) / atr0, Decimal("0.10"), D1)
-            + Decimal("5")
-            * _n_up(_directional_delta(rsi0, rsi1, direction), D0, Decimal("10"))
+            + Decimal("5") * _n_up(_directional_delta(rsi0, rsi1, direction), D0, Decimal("10"))
             + Decimal("5")
             * _n_up(
                 _directional_delta(hist0, hist1, direction) / atr0,
@@ -226,8 +225,7 @@ class ScannerSetupEngine(ScannerEngineBase):
                 _directional_break_margin(breakout.candle.close, level, direction)
                 >= Decimal("0.10") * atrb
                 and _body(breakout.candle) >= Decimal("0.50") * atrb
-                and _directional_close_position(breakout.candle, direction)
-                >= Decimal("0.70")
+                and _directional_close_position(breakout.candle, direction) >= Decimal("0.70")
                 and _frame_value(breakout, "volume_ratio") >= Decimal("1.50")
             )
             if not breakout_ok:
@@ -249,17 +247,14 @@ class ScannerSetupEngine(ScannerEngineBase):
             points = (
                 Decimal("6.25")
                 * _n_up(
-                    _directional_break_margin(breakout.candle.close, level, direction)
-                    / atrb,
+                    _directional_break_margin(breakout.candle.close, level, direction) / atrb,
                     Decimal("0.10"),
                     Decimal("0.40"),
                 )
-                + Decimal("7.50")
-                * _n_down(abs(extreme - level) / atr0, D0, Decimal("0.20"))
+                + Decimal("7.50") * _n_down(abs(extreme - level) / atr0, D0, Decimal("0.20"))
                 + Decimal("6.25")
                 * _n_up(
-                    _directional_reclaim_margin(s0.candle.close, level, direction)
-                    / atr0,
+                    _directional_reclaim_margin(s0.candle.close, level, direction) / atr0,
                     Decimal("0.05"),
                     Decimal("0.40"),
                 )
@@ -270,9 +265,7 @@ class ScannerSetupEngine(ScannerEngineBase):
                     Decimal("2.50"),
                 )
             )
-            trigger = self._entry_trigger(
-                ScannerSetup.BREAKOUT_RETEST, ctx, level=level
-            )
+            trigger = self._entry_trigger(ScannerSetup.BREAKOUT_RETEST, ctx, level=level)
             return self._match(
                 ScannerSetup.BREAKOUT_RETEST,
                 ctx,
@@ -297,9 +290,7 @@ class ScannerSetupEngine(ScannerEngineBase):
         selected = self.selected_ema(s0, direction)
         body = _body(s0.candle)
         if body <= 0:
-            raise ScannerEvaluationError(
-                "INVALID_15M_OHLCV", "EMA rejection body is zero", "15m"
-            )
+            raise ScannerEvaluationError("INVALID_15M_OHLCV", "EMA rejection body is zero", "15m")
         rsi = _frame_value(s0, "rsi14")
         hist0 = _frame_value(s0, "macd_histogram")
         hist1 = _frame_value(s1, "macd_histogram")
@@ -340,8 +331,7 @@ class ScannerSetupEngine(ScannerEngineBase):
                 Decimal("0.70"),
                 Decimal("0.90"),
             )
-            + Decimal("3.75")
-            * _n_up(_frame_value(s0, "volume_ratio"), D1, Decimal("2.50"))
+            + Decimal("3.75") * _n_up(_frame_value(s0, "volume_ratio"), D1, Decimal("2.50"))
         )
         trigger = self._entry_trigger(ScannerSetup.EMA_REJECTION, ctx)
         return self._match(
@@ -365,9 +355,7 @@ class ScannerSetupEngine(ScannerEngineBase):
         atr = _frame_value(s0, "atr14")
         body = _body(s0.candle)
         if body <= 0:
-            raise ScannerEvaluationError(
-                "INVALID_15M_OHLCV", "Liquidity Sweep body is zero", "15m"
-            )
+            raise ScannerEvaluationError("INVALID_15M_OHLCV", "Liquidity Sweep body is zero", "15m")
         sweep_depth = _directional_sweep_depth(s0.candle, level, direction)
         rsi0 = _frame_value(s0, "rsi14")
         rsi1 = _frame_value(s1, "rsi14")
@@ -415,9 +403,7 @@ class ScannerSetupEngine(ScannerEngineBase):
                 Decimal("2.50"),
             )
         )
-        trigger = self._entry_trigger(
-            ScannerSetup.LIQUIDITY_SWEEP_REVERSAL, ctx
-        )
+        trigger = self._entry_trigger(ScannerSetup.LIQUIDITY_SWEEP_REVERSAL, ctx)
         return self._match(
             ScannerSetup.LIQUIDITY_SWEEP_REVERSAL,
             ctx,
@@ -438,11 +424,9 @@ class ScannerSetupEngine(ScannerEngineBase):
         each_valid = all(
             _range(item.candle) <= Decimal("0.90") * _frame_value(item, "atr14")
             and (
-                item.candle.close > _frame_value(item, "ema20")
-                > _frame_value(item, "ema50")
+                item.candle.close > _frame_value(item, "ema20") > _frame_value(item, "ema50")
                 if direction is ScannerDirection.LONG
-                else item.candle.close < _frame_value(item, "ema20")
-                < _frame_value(item, "ema50")
+                else item.candle.close < _frame_value(item, "ema20") < _frame_value(item, "ema50")
             )
             for item in compression
         )
@@ -459,8 +443,7 @@ class ScannerSetupEngine(ScannerEngineBase):
         rsi = _frame_value(s0, "rsi14")
         histogram = _frame_value(s0, "macd_histogram")
         breakout = (
-            _directional_break_margin(s0.candle.close, boundary, direction)
-            >= Decimal("0.05") * atr
+            _directional_break_margin(s0.candle.close, boundary, direction) >= Decimal("0.05") * atr
             and _body(s0.candle) >= Decimal("0.40") * atr
             and _directional_close_position(s0.candle, direction) >= Decimal("0.70")
             and (
@@ -500,9 +483,7 @@ class ScannerSetupEngine(ScannerEngineBase):
                 Decimal("2.50"),
             )
         )
-        trigger = self._entry_trigger(
-            ScannerSetup.CONTINUATION_SETUP, ctx, level=boundary
-        )
+        trigger = self._entry_trigger(ScannerSetup.CONTINUATION_SETUP, ctx, level=boundary)
         return self._match(
             ScannerSetup.CONTINUATION_SETUP,
             ctx,

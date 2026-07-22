@@ -177,12 +177,8 @@ class VerifiedPerformanceReportingService:
                 (entry.gross_realized_pnl_usdt for entry in entries), Decimal("0")
             ),
             realized_pnl_usdt=net,
-            commission_usdt=sum(
-                (entry.commission_usdt for entry in entries), Decimal("0")
-            ),
-            funding_fees_usdt=sum(
-                (entry.funding_fees_usdt for entry in entries), Decimal("0")
-            ),
+            commission_usdt=sum((entry.commission_usdt for entry in entries), Decimal("0")),
+            funding_fees_usdt=sum((entry.funding_fees_usdt for entry in entries), Decimal("0")),
             average_trade_pnl_usdt=average,
             best_trade_pnl_usdt=max(pnl_values, default=None),
             worst_trade_pnl_usdt=min(pnl_values, default=None),

@@ -170,9 +170,7 @@ def test_a_plus_and_a_valid_setup_can_become_ready() -> None:
 
 def test_b_plus_and_pending_trigger_are_near_setup_only() -> None:
     engine = SignalDecisionEngine()
-    b_plus = engine.decide(
-        _candidate(grade=ScannerGrade.B_PLUS, score=83, confidence=75)
-    )
+    b_plus = engine.decide(_candidate(grade=ScannerGrade.B_PLUS, score=83, confidence=75))
     pending = engine.decide(_candidate(entry_ready=False))
 
     assert b_plus.decision_status is SignalDecisionStatus.NEAR_SETUP
@@ -186,9 +184,7 @@ def test_b_plus_and_pending_trigger_are_near_setup_only() -> None:
 
 def test_rejected_grade_or_blocking_reason_cannot_be_ready() -> None:
     engine = SignalDecisionEngine()
-    rejected_grade = engine.decide(
-        _candidate(grade=ScannerGrade.REJECT, score=70, confidence=75)
-    )
+    rejected_grade = engine.decide(_candidate(grade=ScannerGrade.REJECT, score=70, confidence=75))
     blocked = engine.decide(_candidate(audit_codes=["STALE_5M_DATA"]))
 
     assert rejected_grade.decision_status is SignalDecisionStatus.REJECTED

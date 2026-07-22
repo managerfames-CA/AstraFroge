@@ -184,12 +184,8 @@ def test_runtime_status_transition_matrix_and_factory_guards() -> None:
     assert RuntimeOrderAuditService.from_protective_service(object()) is None  # type: ignore[arg-type]
     assert RuntimeOrderAuditService._status_transition_allowed("NEW", "NEW")
     assert RuntimeOrderAuditService._status_transition_allowed("CANCELED", "CANCELLED")
-    assert RuntimeOrderAuditService._status_transition_allowed(
-        "NEW", "PARTIALLY_FILLED"
-    )
-    assert RuntimeOrderAuditService._status_transition_allowed(
-        "PARTIALLY_FILLED", "FILLED"
-    )
+    assert RuntimeOrderAuditService._status_transition_allowed("NEW", "PARTIALLY_FILLED")
+    assert RuntimeOrderAuditService._status_transition_allowed("PARTIALLY_FILLED", "FILLED")
     assert not RuntimeOrderAuditService._status_transition_allowed("FILLED", "NEW")
     assert not RuntimeOrderAuditService._status_transition_allowed("UNKNOWN", "NEW")
 
@@ -431,15 +427,11 @@ def test_progression_guards_reject_durable_truth_conflicts(tmp_path: Path) -> No
         )
         cases = [
             (
-                base.__class__(
-                    **{**base.__dict__, "requested_quantity": Decimal("0.2")}
-                ),
+                base.__class__(**{**base.__dict__, "requested_quantity": Decimal("0.2")}),
                 "ORDER_AUDIT_IMMUTABLE_FIELD_CHANGED",
             ),
             (
-                base.__class__(
-                    **{**base.__dict__, "actual_order_id": "stop-actual-2"}
-                ),
+                base.__class__(**{**base.__dict__, "actual_order_id": "stop-actual-2"}),
                 "ORDER_AUDIT_ACTUAL_ORDER_ID_CHANGED",
             ),
             (

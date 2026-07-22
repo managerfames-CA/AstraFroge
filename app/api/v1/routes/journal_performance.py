@@ -44,9 +44,7 @@ async def closed_trade_journal(
     """Return filtered closed-trade journal entries."""
 
     normalized_symbol = symbol.strip().upper() if symbol is not None else None
-    if normalized_symbol is not None and (
-        not normalized_symbol or not normalized_symbol.isalnum()
-    ):
+    if normalized_symbol is not None and (not normalized_symbol or not normalized_symbol.isalnum()):
         raise HTTPException(status_code=422, detail="Invalid symbol")
     return service.journal(
         JournalFilters(

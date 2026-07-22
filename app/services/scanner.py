@@ -91,9 +91,14 @@ class ScannerService(ScannerFullService):
                 run.evaluated_symbols = len(active)
                 for candidate in active:
                     try:
-                        current_h, current_s, current_e, counts, freshness, structure = (
-                            await self._load_refresh_inputs(candidate.symbol, exchange_time)
-                        )
+                        (
+                            current_h,
+                            current_s,
+                            current_e,
+                            counts,
+                            freshness,
+                            structure,
+                        ) = await self._load_refresh_inputs(candidate.symbol, exchange_time)
                         current_direction = self._engine.regime(current_h, structure)
                         if current_direction is not candidate.direction:
                             raise ScannerEvaluationError(

@@ -82,9 +82,7 @@ class SecretRedactionFilter(logging.Filter):
         if isinstance(record.args, Mapping):
             record.args = redact_value(record.args, self._known_secrets)
         elif isinstance(record.args, tuple):
-            record.args = tuple(
-                redact_value(item, self._known_secrets) for item in record.args
-            )
+            record.args = tuple(redact_value(item, self._known_secrets) for item in record.args)
         return True
 
 

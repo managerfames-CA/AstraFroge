@@ -53,13 +53,9 @@ class LifecycleMismatchDetectionService:
 
         order_report = self._order_source.latest()
         position_report = self._position_source.latest()
-        findings = [
-            self._from_order(item) for item in order_report.findings if item.blocking
-        ]
+        findings = [self._from_order(item) for item in order_report.findings if item.blocking]
         findings.extend(
-            self._from_position(item)
-            for item in position_report.findings
-            if item.blocking
+            self._from_position(item) for item in position_report.findings if item.blocking
         )
 
         sources_ready = (

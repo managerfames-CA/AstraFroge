@@ -102,21 +102,15 @@ class DemoExecutionService:
         risk_status = self._risk.status()
         plans = self.plans().plans
         trades = self.trades().trades
-        open_trades = [
-            trade for trade in trades if trade.lifecycle is DemoTradeLifecycle.OPEN
-        ]
+        open_trades = [trade for trade in trades if trade.lifecycle is DemoTradeLifecycle.OPEN]
         execution_enabled = bool(self._settings.execution_enabled)
         summary = DemoExecutionSummary(
             executable_plans=sum(plan.plan_state is DemoPlanState.EXECUTABLE for plan in plans),
             blocked_plans=sum(plan.plan_state is DemoPlanState.BLOCKED for plan in plans),
             watch_plans=sum(plan.plan_state is DemoPlanState.WATCH for plan in plans),
             open_trades=len(open_trades),
-            long_demo=sum(
-                trade.direction is ScannerDirection.LONG for trade in open_trades
-            ),
-            short_demo=sum(
-                trade.direction is ScannerDirection.SHORT for trade in open_trades
-            ),
+            long_demo=sum(trade.direction is ScannerDirection.LONG for trade in open_trades),
+            short_demo=sum(trade.direction is ScannerDirection.SHORT for trade in open_trades),
         )
         available_slots = max(
             0,
@@ -223,9 +217,7 @@ class DemoExecutionService:
             available_balance = self._decimal(
                 asset.get("availableBalance", "0"), "availableBalance"
             )
-            unrealized_pnl = self._decimal(
-                asset.get("unrealizedProfit", "0"), "unrealizedProfit"
-            )
+            unrealized_pnl = self._decimal(asset.get("unrealizedProfit", "0"), "unrealizedProfit")
             if wallet_balance == 0 and available_balance == 0 and unrealized_pnl == 0:
                 continue
             balances.append(
@@ -245,11 +237,7 @@ class DemoExecutionService:
             positions.append(
                 DemoPositionSnapshot(
                     symbol=str(item.get("symbol", "")),
-                    side=(
-                        ScannerDirection.LONG
-                        if position_amount > 0
-                        else ScannerDirection.SHORT
-                    ),
+                    side=(ScannerDirection.LONG if position_amount > 0 else ScannerDirection.SHORT),
                     quantity=abs(position_amount),
                     entry_price=self._decimal(item.get("entryPrice", "0"), "entryPrice"),
                     unrealized_pnl=self._decimal(
@@ -293,11 +281,7 @@ class DemoExecutionService:
             )
 
         assessment = next(
-            (
-                item
-                for item in self._risk.assessments().assessments
-                if item.signal_id == signal_id
-            ),
+            (item for item in self._risk.assessments().assessments if item.signal_id == signal_id),
             None,
         )
         if assessment is None:
@@ -345,9 +329,7 @@ class DemoExecutionService:
                 symbol=assessment.symbol,
             )
             mark_price = self._mark_price(client.mark_price(assessment.symbol))
-            quantity = rules.normalize_market_quantity(
-                assessment.recommended_quantity
-            )
+            quantity = rules.normalize_market_quantity(assessment.recommended_quantity)
             rules.validate_market_notional(quantity=quantity, mark_price=mark_price)
             stop_price = rules.normalize_protective_price(
                 assessment.stop_loss_price,
@@ -368,8 +350,8 @@ class DemoExecutionService:
         except BinanceDemoPrivateClientError as exc:
             raise self._private_api_error(exc) from exc
 
-        entry_client_id, stop_client_id, take_client_id, close_client_id = (
-            self._client_order_ids(signal_id)
+        entry_client_id, stop_client_id, take_client_id, close_client_id = self._client_order_ids(
+            signal_id
         )
         try:
             entry_payload = self._existing_or_new_entry(
@@ -416,11 +398,9 @@ class DemoExecutionService:
                     message="Verified fill does not leave a positive Stop Loss distance",
                 )
             take_profit_raw = (
-                entry_price
-                + risk_distance * self._settings.execution_take_profit_r_multiple
+                entry_price + risk_distance * self._settings.execution_take_profit_r_multiple
                 if assessment.direction is ScannerDirection.LONG
-                else entry_price
-                - risk_distance * self._settings.execution_take_profit_r_multiple
+                else entry_price - risk_distance * self._settings.execution_take_profit_r_multiple
             )
             take_profit_price = rules.normalize_protective_price(
                 take_profit_raw,
@@ -568,12 +548,7 @@ class DemoExecutionService:
     def _persist_trades(self) -> None:
         if self._trade_store_path is None:
             return
-        payload = {
-            "trades": [
-                trade.model_dump(mode="json")
-                for trade in self.trades().trades
-            ]
-        }
+        payload = {"trades": [trade.model_dump(mode="json") for trade in self.trades().trades]}
         try:
             self._trade_store_path.parent.mkdir(parents=True, exist_ok=True)
             self._trade_store_path.write_text(
@@ -793,11 +768,7 @@ class DemoExecutionService:
             or assessment.recommended_quantity <= 0
         ):
             return Decimal("0")
-        return (
-            assessment.required_margin_usdt
-            * executed_quantity
-            / assessment.recommended_quantity
-        )
+        return assessment.required_margin_usdt * executed_quantity / assessment.recommended_quantity
 
     def _to_plan(self, assessment: RiskAssessment) -> DemoExecutionPlan:
         execution_enabled = bool(self._settings.execution_enabled)

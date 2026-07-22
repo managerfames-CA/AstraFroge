@@ -44,9 +44,7 @@ class ScannerMarketProvider(Protocol):
 
     async def status(self) -> MarketStatus: ...
 
-    async def candles(
-        self, symbol: str, interval: str, limit: int
-    ) -> MarketCandleSeries: ...
+    async def candles(self, symbol: str, interval: str, limit: int) -> MarketCandleSeries: ...
 
 
 class ScannerUniverseProvider(Protocol):
@@ -275,9 +273,7 @@ class ScannerRuntimeBase:
         self._candidates: dict[str, ScannerCandidate] = {}
         self._candidate_contexts: dict[str, EvaluationContext] = {}
         self._terminal_keys: set[str] = set()
-        self._terminal_history: dict[
-            tuple[str, ScannerDirection, ScannerSetup], datetime
-        ] = {}
+        self._terminal_history: dict[tuple[str, ScannerDirection, ScannerSetup], datetime] = {}
         self._runs: list[ScannerRunSummary] = []
         self._next_full_scan_at: datetime | None = None
         self._next_refresh_at: datetime | None = None
@@ -321,9 +317,7 @@ class ScannerRuntimeBase:
             }
             for candidate in self._candidates.values()
         )
-        scheduler_running = (
-            self._scheduler_task is not None and not self._scheduler_task.done()
-        )
+        scheduler_running = self._scheduler_task is not None and not self._scheduler_task.done()
 
         # Single query to avoid double validation and potential inconsistency
         held_status = self._lease.held
@@ -392,18 +386,14 @@ class ScannerRuntimeBase:
                         ema50 + Decimal("0.25") * atr15,
                         swing_high + Decimal("0.10") * atr5,
                     )
-            elif (
-                candidate.setup is ScannerSetup.BREAKOUT_RETEST
-                and candidate.level is not None
-            ):
+            elif candidate.setup is ScannerSetup.BREAKOUT_RETEST and candidate.level is not None:
                 stop = (
                     candidate.level - Decimal("0.15") * atr15
                     if candidate.direction is ScannerDirection.LONG
                     else candidate.level + Decimal("0.15") * atr15
                 )
             elif (
-                candidate.setup is ScannerSetup.EMA_REJECTION
-                and candidate.selected_ema is not None
+                candidate.setup is ScannerSetup.EMA_REJECTION and candidate.selected_ema is not None
             ):
                 reference_low = self._evidence_decimal(candidate, "reference_low")
                 reference_high = self._evidence_decimal(candidate, "reference_high")
@@ -425,10 +415,7 @@ class ScannerRuntimeBase:
                     if candidate.direction is ScannerDirection.LONG
                     else reference_high + Decimal("0.05") * atr5
                 )
-            elif (
-                candidate.setup is ScannerSetup.CONTINUATION_SETUP
-                and candidate.level is not None
-            ):
+            elif candidate.setup is ScannerSetup.CONTINUATION_SETUP and candidate.level is not None:
                 stop = (
                     candidate.level - Decimal("0.15") * atr15
                     if candidate.direction is ScannerDirection.LONG
@@ -599,9 +586,9 @@ class ScannerRuntimeBase:
 
     def _record_terminal(self, candidate: ScannerCandidate) -> None:
         self._terminal_keys.add(candidate.candidate_id)
-        self._terminal_history[
-            (candidate.symbol, candidate.direction, candidate.setup)
-        ] = candidate.evaluated_at
+        self._terminal_history[(candidate.symbol, candidate.direction, candidate.setup)] = (
+            candidate.evaluated_at
+        )
         self._candidate_contexts.pop(candidate.candidate_id, None)
         self._prune_terminal_state()
 

@@ -25,8 +25,15 @@ jobs:
         run: |
           set +e
           ruff check . > ruff-output.txt 2>&1
-          status=$?
+          check_status=$?
+          ruff format --check . >> ruff-output.txt 2>&1
+          format_status=$?
           cat ruff-output.txt
+          if [ $check_status -eq 0 ] && [ $format_status -eq 0 ]; then
+            status=0
+          else
+            status=1
+          fi
           echo "status=$status" >> "$GITHUB_OUTPUT"
           exit 0
       - name: Upload Ruff diagnostic

@@ -182,10 +182,7 @@ class ContinuousOrderReconciliationService:
                 )
             elif (
                 entry_status == "PARTIALLY_FILLED"
-                or (
-                    executed_quantity > 0
-                    and executed_quantity < trade.requested_quantity
-                )
+                or (executed_quantity > 0 and executed_quantity < trade.requested_quantity)
                 or trade.executed_quantity < trade.requested_quantity
             ):
                 findings.append(
@@ -286,9 +283,7 @@ class ContinuousOrderReconciliationService:
                         code="PROTECTIVE_ORDER_MISSING",
                         message="A durable open trade is missing required exchange protection",
                         symbol=symbol,
-                        trade_id=(
-                            matched_trade.trade_id if matched_trade is not None else None
-                        ),
+                        trade_id=(matched_trade.trade_id if matched_trade is not None else None),
                         client_order_id=client_id,
                     )
                 )
@@ -299,9 +294,7 @@ class ContinuousOrderReconciliationService:
                         code="PROTECTIVE_ORDER_IDENTITY_MISMATCH",
                         message="Protective order identity differs from durable state",
                         symbol=symbol,
-                        trade_id=(
-                            matched_trade.trade_id if matched_trade is not None else None
-                        ),
+                        trade_id=(matched_trade.trade_id if matched_trade is not None else None),
                         client_order_id=client_id,
                     )
                 )
@@ -313,18 +306,13 @@ class ContinuousOrderReconciliationService:
             queried_client_id = self._text(queried.get("clientOrderId"))
             queried_order_id = self._text(queried.get("orderId"))
             queried_status = self._text(queried.get("status"))
-            if (
-                queried_client_id != client_id
-                or queried_order_id != expected_order_id
-            ):
+            if queried_client_id != client_id or queried_order_id != expected_order_id:
                 findings.append(
                     OrderReconciliationFinding(
                         code="PROTECTIVE_ORDER_RECONCILIATION_MISMATCH",
                         message="Protective order query does not match durable identity",
                         symbol=symbol,
-                        trade_id=(
-                            matched_trade.trade_id if matched_trade is not None else None
-                        ),
+                        trade_id=(matched_trade.trade_id if matched_trade is not None else None),
                         client_order_id=client_id,
                     )
                 )
@@ -334,9 +322,7 @@ class ContinuousOrderReconciliationService:
                         code="PROTECTIVE_ORDER_PARTIAL_FILL",
                         message="Protective order has partially filled while trade remains open",
                         symbol=symbol,
-                        trade_id=(
-                            matched_trade.trade_id if matched_trade is not None else None
-                        ),
+                        trade_id=(matched_trade.trade_id if matched_trade is not None else None),
                         client_order_id=client_id,
                     )
                 )
@@ -346,9 +332,7 @@ class ContinuousOrderReconciliationService:
                         code="PROTECTIVE_ORDER_RECONCILIATION_MISMATCH",
                         message="Protective order is not safely open on Binance Demo",
                         symbol=symbol,
-                        trade_id=(
-                            matched_trade.trade_id if matched_trade is not None else None
-                        ),
+                        trade_id=(matched_trade.trade_id if matched_trade is not None else None),
                         client_order_id=client_id,
                     )
                 )

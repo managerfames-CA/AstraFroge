@@ -64,9 +64,7 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     )
 
 
-async def validation_error_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
+async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     logger.info(
         "Request validation failed",
         extra={"request_id": _request_id(request), "validation_errors": exc.errors()},

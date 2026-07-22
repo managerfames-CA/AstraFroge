@@ -40,9 +40,7 @@ async def signal_list(
     """Return filtered versioned Signals sourced from Scanner candidates."""
 
     normalized_symbol = symbol.strip().upper() if symbol is not None else None
-    if normalized_symbol is not None and (
-        not normalized_symbol or not normalized_symbol.isalnum()
-    ):
+    if normalized_symbol is not None and (not normalized_symbol or not normalized_symbol.isalnum()):
         raise HTTPException(status_code=422, detail="Invalid symbol")
     signals = [
         signal

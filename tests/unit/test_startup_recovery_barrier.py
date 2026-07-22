@@ -115,9 +115,7 @@ class _PrivateClient:
         return list(self._positions)
 
     def query_order(self, *, symbol: str, orig_client_order_id: str) -> dict[str, Any]:
-        raise AssertionError(
-            f"query_order should not be reached: {symbol}:{orig_client_order_id}"
-        )
+        raise AssertionError(f"query_order should not be reached: {symbol}:{orig_client_order_id}")
 
     def query_algo_order(self, *, symbol: str, orig_client_order_id: str) -> dict[str, Any]:
         raise AssertionError(

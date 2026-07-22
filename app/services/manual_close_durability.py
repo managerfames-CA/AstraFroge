@@ -114,10 +114,7 @@ class ManualCloseDurabilityService:
         quantity = self._optional_decimal(payload.get("executedQty"))
         average_price = self._optional_decimal(payload.get("avgPrice"))
         if status == "FILLED" and (
-            quantity is None
-            or quantity <= 0
-            or average_price is None
-            or average_price <= 0
+            quantity is None or quantity <= 0 or average_price is None or average_price <= 0
         ):
             raise ManualCloseDurabilityError("Filled manual close economics are invalid")
 
@@ -165,13 +162,9 @@ class ManualCloseDurabilityService:
                 session.add(order)
             else:
                 if order.client_order_id != client_order_id:
-                    raise ManualCloseDurabilityError(
-                        "Manual close client-order identity changed"
-                    )
+                    raise ManualCloseDurabilityError("Manual close client-order identity changed")
                 if order.exchange_order_id not in {None, exchange_order_id}:
-                    raise ManualCloseDurabilityError(
-                        "Manual close exchange-order identity changed"
-                    )
+                    raise ManualCloseDurabilityError("Manual close exchange-order identity changed")
                 order.exchange_order_id = exchange_order_id
                 order.status = status
                 order.quantity_text = self._decimal_text(quantity)
@@ -341,13 +334,9 @@ class ManualCloseDurabilityService:
         try:
             parsed = Decimal(str(value))
         except (InvalidOperation, TypeError, ValueError) as exc:
-            raise ManualCloseDurabilityError(
-                "Manual close exchange decimal is invalid"
-            ) from exc
+            raise ManualCloseDurabilityError("Manual close exchange decimal is invalid") from exc
         if not parsed.is_finite() or parsed < 0:
-            raise ManualCloseDurabilityError(
-                "Manual close exchange decimal is invalid"
-            )
+            raise ManualCloseDurabilityError("Manual close exchange decimal is invalid")
         return parsed
 
     @staticmethod

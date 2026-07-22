@@ -217,6 +217,7 @@ class TradingStateRepositories:
                 FillRow,
                 fill_id,
             )
+
         return self._run(session, do_save)
 
     def save_position(
@@ -388,18 +389,13 @@ class TradingStateRepositories:
     ) -> bool:
         if session.get(model, stable_id) is not None:
             return False
-        values = {
-            column.name: getattr(row, column.name)
-            for column in row.__table__.columns
-        }
+        values = {column.name: getattr(row, column.name) for column in row.__table__.columns}
         dialect_name = session.get_bind().dialect.name
         if dialect_name == "postgresql":
             result = cast(
                 CursorResult[Any],
                 session.execute(
-                    postgresql_insert(row.__table__)
-                    .values(**values)
-                    .on_conflict_do_nothing()
+                    postgresql_insert(row.__table__).values(**values).on_conflict_do_nothing()
                 ),
             )
             return result.rowcount > 0
@@ -407,9 +403,7 @@ class TradingStateRepositories:
             result = cast(
                 CursorResult[Any],
                 session.execute(
-                    sqlite_insert(row.__table__)
-                    .values(**values)
-                    .on_conflict_do_nothing()
+                    sqlite_insert(row.__table__).values(**values).on_conflict_do_nothing()
                 ),
             )
             return result.rowcount > 0
@@ -426,8 +420,10 @@ class TradingStateRepositories:
 
     @staticmethod
     def _active_mutation_replay_count(session: Session, *, now: datetime) -> int:
-        statement = select(func.count()).select_from(MutationReplayKeyRow).where(
-            MutationReplayKeyRow.expires_at > now
+        statement = (
+            select(func.count())
+            .select_from(MutationReplayKeyRow)
+            .where(MutationReplayKeyRow.expires_at > now)
         )
         return int(session.scalar(statement) or 0)
 

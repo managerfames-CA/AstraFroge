@@ -188,17 +188,13 @@ def test_order_reconciliation_classifies_protective_partial_fill() -> None:
 
     report = service.reconcile()
 
-    assert "PROTECTIVE_ORDER_PARTIAL_FILL" in {
-        item.code for item in report.findings
-    }
+    assert "PROTECTIVE_ORDER_PARTIAL_FILL" in {item.code for item in report.findings}
     assert report.blocking is True
 
 
 def test_order_reconciliation_fails_closed_without_private_client() -> None:
     gate = _ready_gate()
-    service = ContinuousOrderReconciliationService(
-        _Trades(), None, gate, now_provider=lambda: NOW
-    )
+    service = ContinuousOrderReconciliationService(_Trades(), None, gate, now_provider=lambda: NOW)
 
     report = service.reconcile()
 
