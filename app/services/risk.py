@@ -108,6 +108,7 @@ class RiskService:
         updated_at = snapshot.captured_at if snapshot is not None else signal_status.updated_at
         return RiskStatusResponse(
             state=state,
+            contract_version="1",
             signal_engine_state=signal_status.state.value,
             account_snapshot_available=snapshot is not None,
             account_can_trade=snapshot.can_trade if snapshot is not None else False,

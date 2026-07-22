@@ -27,7 +27,7 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 - [x] BE-16: Add notifications for orders, fills, TP/SL, Risk blocks, connection failures and reconciliation mismatches. (Evidence: [docs/BE_16_COMPLETION_EVIDENCE.md](docs/BE_16_COMPLETION_EVIDENCE.md))
 - [x] BE-17: Confirm Scanner auto-start behavior is intentional, configurable and safe after deployment restart. (Evidence: [docs/BE_17_COMPLETION_EVIDENCE.md](docs/BE_17_COMPLETION_EVIDENCE.md))
 - [x] BE-18: Verify Scanner latest-run summary and degraded-run diagnostics against the frontend contract. (Evidence: [docs/BE_18_COMPLETION_EVIDENCE.md](docs/BE_18_COMPLETION_EVIDENCE.md))
-- [ ] BE-19: Publish stable typed contracts required by Frontend Signals, Risk, Demo Account, Execution, Active Trades and Journal pages.
+- [x] BE-19: Publish stable typed contracts required by Frontend Signals, Risk, Demo Account, Execution, Active Trades and Journal pages. (Evidence: [docs/BE_19_COMPLETION_EVIDENCE.md](docs/BE_19_COMPLETION_EVIDENCE.md))
 - [ ] BE-20: Run and pass Ruff on latest main.
 - [ ] BE-21: Run and pass strict Mypy on latest main.
 - [ ] BE-22: Run and pass the full Pytest suite with the required coverage threshold.
@@ -41,7 +41,7 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 - [ ] BE-30: Run a final backend security and production-readiness audit.
 
 ## Current Next Action
-**Current Next Action**: BE-19: Publish stable typed contracts required by Frontend Signals, Risk, Demo Account, Execution, Active Trades and Journal pages.
+**Current Next Action**: BE-20: Run and pass Ruff on latest main.
 
 ## Completion Log
 
@@ -65,3 +65,4 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 | **BE-16** | Add notifications for orders, fills, TP/SL, Risk blocks, connection failures and reconciliation mismatches. | [docs/BE_16_COMPLETION_EVIDENCE.md](docs/BE_16_COMPLETION_EVIDENCE.md) | PR #69 / Commit `4d054cb26c4621d39a566526b31859a2371e01d6` | Completed |
 | **BE-17** | Confirm Scanner auto-start behavior is intentional, configurable and safe after deployment restart. | [docs/BE_17_COMPLETION_EVIDENCE.md](docs/BE_17_COMPLETION_EVIDENCE.md) | Commit `9106e9bb7a94ff93f28627c9ed6aa6f4e8bed3e2` | Completed |
 | **BE-18** | Verify Scanner latest-run summary and degraded-run diagnostics against the frontend contract. | [docs/BE_18_COMPLETION_EVIDENCE.md](docs/BE_18_COMPLETION_EVIDENCE.md) | Commit `9106e9bb7a94ff93f28627c9ed6aa6f4e8bed3e2` | Completed |
+| **BE-19** | Publish stable typed contracts required by Frontend Signals, Risk, Demo Account, Execution, Active Trades and Journal pages. | [docs/BE_19_COMPLETION_EVIDENCE.md](docs/BE_19_COMPLETION_EVIDENCE.md) | PR / branch `be-19-stable-contracts` | Completed |

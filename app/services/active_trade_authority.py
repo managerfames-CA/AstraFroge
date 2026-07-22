@@ -64,6 +64,7 @@ class ActiveTradeAuthorityService:
             state = base.state
         return TradeManagementStatusResponse(
             state=state,
+            contract_version="1",
             exchange_authoritative_active_trades=(
                 active.exchange_authoritative_open_trades
             ),

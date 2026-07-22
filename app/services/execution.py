@@ -127,8 +127,15 @@ class DemoExecutionService:
             default=risk_status.updated_at,
         )
         state = self._state_from_risk(risk_status.state)
+        execution_integration_available = (
+            execution_enabled
+            and self._settings.demo_credentials_configured
+            and self._private_client is not None
+        )
         return DemoExecutionStatusResponse(
             state=state,
+            contract_version="1",
+            execution_integration_available=execution_integration_available,
             execution_enabled=execution_enabled,
             demo_credentials_configured=self._settings.demo_credentials_configured,
             private_api_available=self._private_client is not None,

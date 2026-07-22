@@ -92,6 +92,7 @@ class TradeManagementService:
         )
         return TradeManagementStatusResponse(
             state=self._state_from_execution(execution_status.state),
+            contract_version="1",
             execution_engine_state=execution_status.state.value,
             max_open_trades_limit=execution_status.max_open_trades_limit,
             tracked_trade_count=len(trades),

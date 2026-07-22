@@ -98,6 +98,7 @@ class JournalPerformanceService:
         )
         return JournalPerformanceStatusResponse(
             state=self._source_state(trade_management_status.state, snapshot),
+            contract_version="1",
             trade_management_state=trade_management_status.state,
             lookback_days=performance.lookback_days,
             latest_closed_trade_at=latest_closed_trade_at,

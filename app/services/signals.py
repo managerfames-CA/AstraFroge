@@ -6,6 +6,7 @@ import hashlib
 from datetime import datetime
 from typing import Any
 
+from app.core.config import get_settings
 from app.schemas.scanner import (
     CandidateLifecycle,
     ScannerCandidate,
@@ -98,8 +99,16 @@ class SignalService:
                 signal.lifecycle is SignalLifecycle.RISK_BLOCKED for signal in signals
             ),
         )
+        settings = get_settings()
+        execution_integration_available = (
+            settings.execution_enabled
+            and settings.demo_credentials_configured
+            and settings.binance_demo_base_url is not None
+        )
         return SignalStatusResponse(
             state=engine_state,
+            contract_version="1",
+            execution_integration_available=execution_integration_available,
             scanner_state=scanner_status.state.value,
             active_signal_count=active,
             watch_signal_count=watch,

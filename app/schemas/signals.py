@@ -105,6 +105,8 @@ class SignalStatusResponse(BaseModel):
     """Current deterministic signal-engine state and summary counts."""
 
     state: SignalEngineState
+    contract_version: str = "1"
+    execution_integration_available: bool = False
     signal_engine_implemented: bool = True
     scanner_required: bool = True
     scanner_state: str
