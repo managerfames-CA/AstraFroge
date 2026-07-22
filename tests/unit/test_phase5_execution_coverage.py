@@ -591,12 +591,9 @@ async def test_command_observability_routes_cover_success_and_missing() -> None:
     assert (
         await execution_command_detail(command.command_id, service)  # type: ignore[arg-type]
     ) == command
-    assert (
-        len(
-            await execution_command_history(command.command_id, service)  # type: ignore[arg-type]
-        )
-        == 1
-    )
+    assert len(
+        await execution_command_history(command.command_id, service)  # type: ignore[arg-type]
+    ) == 1
     assert (await execution_worker_status(_RouteWorker())).worker_id == "worker"  # type: ignore[arg-type]
 
     missing = _RouteService(None)

@@ -47,7 +47,9 @@ class BinanceDemoRecoveryClient(BinanceDemoPrivateClient):
             name="actual protective order query",
         )
         if str(actual.get("orderId", "")) != str(actual_order_id):
-            raise BinanceDemoPrivateClientError("Unexpected actual protective order identity")
+            raise BinanceDemoPrivateClientError(
+                "Unexpected actual protective order identity"
+            )
         enriched = dict(payload)
         enriched["executedQty"] = actual.get("executedQty")
         if enriched.get("avgPrice") in {None, ""}:

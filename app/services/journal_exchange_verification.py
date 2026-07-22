@@ -140,12 +140,18 @@ class JournalExchangeVerificationService:
             expected_client_order_id=close_client_order_id,
             expected_exchange_order_id=None,
             expected_quantity=None if algo else trade.executed_quantity,
-            accepted_statuses=(_ALGO_TERMINAL_STATUSES if algo else _REGULAR_FILLED_STATUSES),
+            accepted_statuses=(
+                _ALGO_TERMINAL_STATUSES if algo else _REGULAR_FILLED_STATUSES
+            ),
             code_prefix="CLOSE",
         )
 
-        start_ms = int((trade.opened_at - timedelta(minutes=5)).timestamp() * 1000)
-        end_ms = int((trade.closed_at + timedelta(minutes=5)).timestamp() * 1000)
+        start_ms = int(
+            (trade.opened_at - timedelta(minutes=5)).timestamp() * 1000
+        )
+        end_ms = int(
+            (trade.closed_at + timedelta(minutes=5)).timestamp() * 1000
+        )
         fills = client.user_trades(
             symbol=trade.symbol,
             start_time_ms=start_ms,
@@ -223,14 +229,25 @@ class JournalExchangeVerificationService:
         code_prefix: str,
     ) -> str:
         client_id = cls._text(payload.get("clientOrderId"))
-        exchange_id = cls._text(payload.get("actualOrderId")) or cls._text(payload.get("orderId"))
+        exchange_id = cls._text(payload.get("actualOrderId")) or cls._text(
+            payload.get("orderId")
+        )
         status = cls._text(payload.get("status"))
         if client_id != expected_client_order_id or exchange_id is None:
-            raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_ORDER_IDENTITY_INVALID")
-        if expected_exchange_order_id is not None and exchange_id != expected_exchange_order_id:
-            raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_ORDER_IDENTITY_INVALID")
+            raise JournalSourceVerificationError(
+                f"JOURNAL_{code_prefix}_ORDER_IDENTITY_INVALID"
+            )
+        if (
+            expected_exchange_order_id is not None
+            and exchange_id != expected_exchange_order_id
+        ):
+            raise JournalSourceVerificationError(
+                f"JOURNAL_{code_prefix}_ORDER_IDENTITY_INVALID"
+            )
         if status not in accepted_statuses:
-            raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_ORDER_NOT_FILLED")
+            raise JournalSourceVerificationError(
+                f"JOURNAL_{code_prefix}_ORDER_NOT_FILLED"
+            )
         if expected_quantity is not None:
             quantity = cls._positive_decimal(payload.get("executedQty"))
             if quantity != expected_quantity:
@@ -259,18 +276,26 @@ class JournalExchangeVerificationService:
                 continue
             fill_id = cls._text(payload.get("id"))
             if fill_id is None or fill_id in fill_ids:
-                raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_FILL_IDENTITY_INVALID")
+                raise JournalSourceVerificationError(
+                    f"JOURNAL_{code_prefix}_FILL_IDENTITY_INVALID"
+                )
             fill_quantity = cls._positive_decimal(payload.get("qty"))
             fill_price = cls._positive_decimal(payload.get("price"))
             fill_ids.append(fill_id)
             quantity += fill_quantity
             notional += fill_quantity * fill_price
         if not fill_ids:
-            raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_FILL_MISSING")
+            raise JournalSourceVerificationError(
+                f"JOURNAL_{code_prefix}_FILL_MISSING"
+            )
         if quantity != expected_quantity:
-            raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_FILL_QUANTITY_MISMATCH")
+            raise JournalSourceVerificationError(
+                f"JOURNAL_{code_prefix}_FILL_QUANTITY_MISMATCH"
+            )
         if notional <= 0:
-            raise JournalSourceVerificationError(f"JOURNAL_{code_prefix}_FILL_NOTIONAL_INVALID")
+            raise JournalSourceVerificationError(
+                f"JOURNAL_{code_prefix}_FILL_NOTIONAL_INVALID"
+            )
         return VerifiedFillEconomics(
             fill_ids=tuple(sorted(fill_ids)),
             quantity=quantity,
@@ -314,13 +339,17 @@ class JournalExchangeVerificationService:
                 continue
             transaction_id = cls._text(payload.get("tranId"))
             if transaction_id is None or transaction_id in transaction_ids:
-                raise JournalSourceVerificationError("JOURNAL_INCOME_IDENTITY_INVALID")
+                raise JournalSourceVerificationError(
+                    "JOURNAL_INCOME_IDENTITY_INVALID"
+                )
             _ = cls._finite_decimal(payload.get("income"))
             if income_type == "REALIZED_PNL":
                 realized_pnl_found = True
             transaction_ids.append(transaction_id)
         if not realized_pnl_found:
-            raise JournalSourceVerificationError("JOURNAL_REALIZED_PNL_INCOME_MISSING")
+            raise JournalSourceVerificationError(
+                "JOURNAL_REALIZED_PNL_INCOME_MISSING"
+            )
         return tuple(sorted(transaction_ids))
 
     @staticmethod
@@ -334,7 +363,9 @@ class JournalExchangeVerificationService:
     def _positive_decimal(cls, value: Any) -> Decimal:
         parsed = cls._finite_decimal(value)
         if parsed <= 0:
-            raise JournalSourceVerificationError("JOURNAL_EXCHANGE_DECIMAL_INVALID")
+            raise JournalSourceVerificationError(
+                "JOURNAL_EXCHANGE_DECIMAL_INVALID"
+            )
         return parsed
 
     @staticmethod
@@ -342,7 +373,11 @@ class JournalExchangeVerificationService:
         try:
             parsed = Decimal(str(value))
         except (InvalidOperation, TypeError, ValueError) as exc:
-            raise JournalSourceVerificationError("JOURNAL_EXCHANGE_DECIMAL_INVALID") from exc
+            raise JournalSourceVerificationError(
+                "JOURNAL_EXCHANGE_DECIMAL_INVALID"
+            ) from exc
         if not parsed.is_finite():
-            raise JournalSourceVerificationError("JOURNAL_EXCHANGE_DECIMAL_INVALID")
+            raise JournalSourceVerificationError(
+                "JOURNAL_EXCHANGE_DECIMAL_INVALID"
+            )
         return parsed

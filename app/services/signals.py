@@ -60,7 +60,9 @@ class SignalService:
         active = sum(signal.lifecycle is SignalLifecycle.ACTIVE for signal in signals)
         watch = sum(signal.lifecycle is SignalLifecycle.WATCH for signal in signals)
         terminal = len(signals) - active - watch
-        latest_scanner_run_at = latest_run.completed_at if latest_run is not None else None
+        latest_scanner_run_at = (
+            latest_run.completed_at if latest_run is not None else None
+        )
         updated_at = max(
             (signal.updated_at or signal.evaluated_at for signal in signals),
             default=latest_scanner_run_at,
@@ -71,20 +73,27 @@ class SignalService:
             else SignalEngineState.WAITING_FOR_SCANNER
         )
         summary = SignalSummary(
-            active_signals=sum(signal.lifecycle is SignalLifecycle.ACTIVE for signal in signals),
+            active_signals=sum(
+                signal.lifecycle is SignalLifecycle.ACTIVE for signal in signals
+            ),
             a_plus_signals=sum(
-                signal.lifecycle is SignalLifecycle.ACTIVE and signal.grade is ScannerGrade.A_PLUS
+                signal.lifecycle is SignalLifecycle.ACTIVE
+                and signal.grade is ScannerGrade.A_PLUS
                 for signal in signals
             ),
             a_signals=sum(
-                signal.lifecycle is SignalLifecycle.ACTIVE and signal.grade is ScannerGrade.A
+                signal.lifecycle is SignalLifecycle.ACTIVE
+                and signal.grade is ScannerGrade.A
                 for signal in signals
             ),
             b_plus_watch=sum(
-                signal.lifecycle is SignalLifecycle.WATCH and signal.grade is ScannerGrade.B_PLUS
+                signal.lifecycle is SignalLifecycle.WATCH
+                and signal.grade is ScannerGrade.B_PLUS
                 for signal in signals
             ),
-            expired=sum(signal.lifecycle is SignalLifecycle.EXPIRED for signal in signals),
+            expired=sum(
+                signal.lifecycle is SignalLifecycle.EXPIRED for signal in signals
+            ),
             risk_blocked=sum(
                 signal.lifecycle is SignalLifecycle.RISK_BLOCKED for signal in signals
             ),
@@ -151,7 +160,10 @@ class SignalService:
                 self._records_by_candidate[candidate.candidate_id] = record
                 self._candidate_by_signal[record.signal_id] = candidate.candidate_id
                 continue
-            if existing.lifecycle in _TERMINAL_LIFECYCLES and lifecycle is not existing.lifecycle:
+            if (
+                existing.lifecycle in _TERMINAL_LIFECYCLES
+                and lifecycle is not existing.lifecycle
+            ):
                 continue
             self._records_by_candidate[candidate.candidate_id] = self._update_record(
                 existing,
@@ -161,7 +173,10 @@ class SignalService:
 
         if latest_scanner_run_at is not None:
             for candidate_id, record in list(self._records_by_candidate.items()):
-                if candidate_id in seen_candidates or record.lifecycle in _TERMINAL_LIFECYCLES:
+                if (
+                    candidate_id in seen_candidates
+                    or record.lifecycle in _TERMINAL_LIFECYCLES
+                ):
                     continue
                 record_time = record.updated_at or record.evaluated_at
                 if latest_scanner_run_at < record_time:
@@ -194,7 +209,9 @@ class SignalService:
             lifecycle=lifecycle,
             created_at=candidate.evaluated_at,
             updated_at=candidate.evaluated_at,
-            terminal_at=(candidate.evaluated_at if lifecycle in _TERMINAL_LIFECYCLES else None),
+            terminal_at=(
+                candidate.evaluated_at if lifecycle in _TERMINAL_LIFECYCLES else None
+            ),
             lifecycle_history=[transition],
             **self._candidate_values(candidate),
         )
@@ -207,7 +224,9 @@ class SignalService:
     ) -> SignalRecord:
         values = self._candidate_values(candidate)
         values["lifecycle"] = lifecycle
-        changed = any(getattr(existing, key) != value for key, value in values.items())
+        changed = any(
+            getattr(existing, key) != value for key, value in values.items()
+        )
         if not changed:
             return existing
 
@@ -238,7 +257,9 @@ class SignalService:
     def _candidate_values(self, candidate: ScannerCandidate) -> dict[str, Any]:
         source_run_id = candidate.evidence.get("source_run_id")
         stop_provider = getattr(self._scanner, "risk_stop_price", None)
-        stop_loss_price = stop_provider(candidate.candidate_id) if callable(stop_provider) else None
+        stop_loss_price = (
+            stop_provider(candidate.candidate_id) if callable(stop_provider) else None
+        )
         return {
             "symbol": candidate.symbol,
             "direction": candidate.direction,
@@ -291,7 +312,9 @@ class SignalService:
                 "version": record.version + 1,
                 "lifecycle": lifecycle,
                 "updated_at": changed_at,
-                "terminal_at": (changed_at if lifecycle in _TERMINAL_LIFECYCLES else None),
+                "terminal_at": (
+                    changed_at if lifecycle in _TERMINAL_LIFECYCLES else None
+                ),
                 "audit_codes": audit_codes,
                 "lifecycle_history": history,
             }

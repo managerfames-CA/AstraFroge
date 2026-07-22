@@ -38,7 +38,9 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
-        sa.UniqueConstraint("idempotency_key", name="uq_execution_command_idempotency"),
+        sa.UniqueConstraint(
+            "idempotency_key", name="uq_execution_command_idempotency"
+        ),
         sa.UniqueConstraint(
             "signal_id",
             "decision_key",

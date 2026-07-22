@@ -128,7 +128,9 @@ def _directional_wick(candle: MarketCandle, direction: ScannerDirection) -> Deci
     return _lower_wick(candle) if direction is ScannerDirection.LONG else _upper_wick(candle)
 
 
-def _directional_close_position(candle: MarketCandle, direction: ScannerDirection) -> Decimal:
+def _directional_close_position(
+    candle: MarketCandle, direction: ScannerDirection
+) -> Decimal:
     candle_range = _range(candle)
     if candle_range <= 0:
         raise ScannerEvaluationError("INVALID_15M_OHLCV", "Candle range must be positive")
@@ -163,7 +165,9 @@ def _directional_histogram(value: Decimal, direction: ScannerDirection) -> Decim
     return value if direction is ScannerDirection.LONG else -value
 
 
-def _directional_delta(current: Decimal, previous: Decimal, direction: ScannerDirection) -> Decimal:
+def _directional_delta(
+    current: Decimal, previous: Decimal, direction: ScannerDirection
+) -> Decimal:
     return current - previous if direction is ScannerDirection.LONG else previous - current
 
 
@@ -179,7 +183,9 @@ def _directional_sweep_depth(
     return level - candle.low if direction is ScannerDirection.LONG else candle.high - level
 
 
-def _directional_previous_break_level(candle: MarketCandle, direction: ScannerDirection) -> Decimal:
+def _directional_previous_break_level(
+    candle: MarketCandle, direction: ScannerDirection
+) -> Decimal:
     return candle.high if direction is ScannerDirection.LONG else candle.low
 
 
@@ -358,7 +364,10 @@ class ScannerEngineBase:
         sideways = (
             structure_state == "range"
             or abs(ema20 - ema50) <= Decimal("0.25") * atr
-            or (Decimal("45") <= rsi <= Decimal("55") and abs(histogram) <= Decimal("0.05") * atr)
+            or (
+                Decimal("45") <= rsi <= Decimal("55")
+                and abs(histogram) <= Decimal("0.05") * atr
+            )
         )
         if sideways:
             raise ScannerEvaluationError("TREND_SIDEWAYS", "1H regime is SIDEWAYS", "1h")
@@ -421,7 +430,9 @@ class ScannerEngineBase:
             )
 
     @staticmethod
-    def shared_entry(e: list[Frame], direction: ScannerDirection, trigger: Decimal) -> bool:
+    def shared_entry(
+        e: list[Frame], direction: ScannerDirection, trigger: Decimal
+    ) -> bool:
         e0, e1 = e[0], e[1]
         atr = _frame_value(e0, "atr14")
         ema20 = _frame_value(e0, "ema20")

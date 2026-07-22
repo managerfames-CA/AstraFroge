@@ -144,7 +144,9 @@ def test_fill_window_truncation_fails_closed(tmp_path: Path) -> None:
 
     report = service.reconcile()
 
-    assert {item.code for item in report.findings} == {"PROTECTIVE_FILL_WINDOW_TRUNCATED"}
+    assert {item.code for item in report.findings} == {
+        "PROTECTIVE_FILL_WINDOW_TRUNCATED"
+    }
 
 
 @pytest.mark.parametrize(
@@ -282,7 +284,9 @@ def test_missing_durable_trade_rejects_verified_partial_event(tmp_path: Path) ->
 
     report = service.reconcile()
 
-    assert {item.code for item in report.findings} == {"PROTECTIVE_LIFECYCLE_TRADE_NOT_DURABLE"}
+    assert {item.code for item in report.findings} == {
+        "PROTECTIVE_LIFECYCLE_TRADE_NOT_DURABLE"
+    }
 
 
 def test_malformed_existing_event_payload_fails_closed(tmp_path: Path) -> None:
@@ -319,7 +323,9 @@ def test_malformed_existing_event_payload_fails_closed(tmp_path: Path) -> None:
 
     report = service.reconcile()
 
-    assert {item.code for item in report.findings} == {"PROTECTIVE_EVENT_PAYLOAD_INVALID"}
+    assert {item.code for item in report.findings} == {
+        "PROTECTIVE_EVENT_PAYLOAD_INVALID"
+    }
 
 
 def test_parser_helpers_reject_invalid_exchange_values() -> None:
@@ -351,7 +357,9 @@ def test_sibling_identity_requires_verified_close_reason() -> None:
             "closed_at": NOW,
         }
     )
-    take_closed = stop_closed.model_copy(update={"closed_reason": DemoTradeCloseReason.TAKE_PROFIT})
+    take_closed = stop_closed.model_copy(
+        update={"closed_reason": DemoTradeCloseReason.TAKE_PROFIT}
+    )
 
     assert ProtectiveLifecycleVerificationService._sibling_identity(stop_closed) == (
         "af-take-1",

@@ -46,9 +46,9 @@ def test_notification_crud_filters_redaction_and_deduplication(tmp_path: Path) -
     assert service.get_notification(created.notification_id) == created
     assert service.get_notification("missing") is None
     assert service.list_notifications(symbol="BTCUSDT") == [created]
-    assert service.list_notifications(notification_type=NotificationType.ORDER_SUBMITTED) == [
-        created
-    ]
+    assert service.list_notifications(
+        notification_type=NotificationType.ORDER_SUBMITTED
+    ) == [created]
     assert service.list_notifications(severity=NotificationSeverity.INFO) == [created]
     assert service.list_notifications(unread_only=True) == [created]
 

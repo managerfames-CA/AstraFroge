@@ -190,7 +190,9 @@ class ContinuousPositionReconciliationService:
                 )
                 continue
             exchange_by_symbol[symbol] = (
-                ScannerDirection.LONG if signed_quantity > 0 else ScannerDirection.SHORT,
+                ScannerDirection.LONG
+                if signed_quantity > 0
+                else ScannerDirection.SHORT,
                 abs(signed_quantity),
             )
 
@@ -244,7 +246,9 @@ class ContinuousPositionReconciliationService:
             findings.append(
                 PositionReconciliationFinding(
                     code="ORPHAN_EXCHANGE_POSITION",
-                    message=("Binance Demo has an open position with no durable tracked trade"),
+                    message=(
+                        "Binance Demo has an open position with no durable tracked trade"
+                    ),
                     symbol=symbol,
                     actual_direction=actual_direction,
                     actual_quantity=actual_quantity,

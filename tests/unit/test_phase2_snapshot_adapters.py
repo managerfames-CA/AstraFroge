@@ -142,17 +142,14 @@ def test_snapshot_proxy_delegates_non_snapshot_methods_and_invalidates_after_mar
     assert proxy.cancel_order(symbol="BTCUSDT", orig_client_order_id="sl")["status"] == "CANCELED"
     assert proxy.open_orders() == []
     assert proxy.open_algo_orders() == []
-    assert (
-        proxy.place_protective_order(
-            symbol="BTCUSDT",
-            side="SELL",
-            order_type="STOP_MARKET",
-            quantity="0.01",
-            stop_price="64000",
-            new_client_order_id="sl",
-        )["type"]
-        == "STOP_MARKET"
-    )
+    assert proxy.place_protective_order(
+        symbol="BTCUSDT",
+        side="SELL",
+        order_type="STOP_MARKET",
+        quantity="0.01",
+        stop_price="64000",
+        new_client_order_id="sl",
+    )["type"] == "STOP_MARKET"
 
     proxy.place_market_order(
         symbol="BTCUSDT",

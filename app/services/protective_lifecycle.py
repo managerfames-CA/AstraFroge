@@ -203,7 +203,9 @@ class ProtectiveLifecycleVerificationService:
 
         checked_at = self._now()
         records = self._trade_source.trades().trades
-        open_trades = [trade for trade in records if trade.lifecycle is DemoTradeLifecycle.OPEN]
+        open_trades = [
+            trade for trade in records if trade.lifecycle is DemoTradeLifecycle.OPEN
+        ]
         pending_cleanup = [
             trade
             for trade in records
@@ -396,7 +398,9 @@ class ProtectiveLifecycleVerificationService:
             self._verify_unchanged_position(trade, current)
             return None
 
-        algo, sibling, fills = (stop, take, stop_fills) if stop_fills else (take, stop, take_fills)
+        algo, sibling, fills = (
+            (stop, take, stop_fills) if stop_fills else (take, stop, take_fills)
+        )
         exit_quantity = sum((item.quantity for item in fills), Decimal("0"))
         if exit_quantity > trade.executed_quantity:
             raise ProtectiveLifecycleVerificationError(
@@ -443,7 +447,9 @@ class ProtectiveLifecycleVerificationService:
         trade = observation.trade
         with repositories.persistence.transaction() as session:
             row = session.scalar(
-                select(TradeRow).where(TradeRow.trade_id == trade.trade_id).with_for_update()
+                select(TradeRow)
+                .where(TradeRow.trade_id == trade.trade_id)
+                .with_for_update()
             )
             if row is None:
                 raise ProtectiveLifecycleVerificationError(
@@ -529,7 +535,9 @@ class ProtectiveLifecycleVerificationService:
                             subject_id=event_id,
                             signal_id=trade.signal_id,
                             state=event.event_type.value,
-                            client_order_ids_json=self._json([observation.algo.client_order_id]),
+                            client_order_ids_json=self._json(
+                                [observation.algo.client_order_id]
+                            ),
                             payload_json=self._json(event.model_dump(mode="json")),
                             created_at=fill.filled_at,
                             updated_at=recorded_at,
@@ -569,7 +577,9 @@ class ProtectiveLifecycleVerificationService:
                     observation.sibling_cancelled if observation.full_close else None
                 ),
                 "exchange_position_quantity": (
-                    observation.remaining_quantity if observation.remaining_quantity > 0 else None
+                    observation.remaining_quantity
+                    if observation.remaining_quantity > 0
+                    else None
                 ),
                 "updated_at": recorded_at,
             }
@@ -682,7 +692,9 @@ class ProtectiveLifecycleVerificationService:
         )
         with repositories.persistence.transaction() as session:
             row = session.scalar(
-                select(TradeRow).where(TradeRow.trade_id == trade.trade_id).with_for_update()
+                select(TradeRow)
+                .where(TradeRow.trade_id == trade.trade_id)
+                .with_for_update()
             )
             if row is None:
                 raise ProtectiveLifecycleVerificationError(
@@ -789,7 +801,9 @@ class ProtectiveLifecycleVerificationService:
                     "Binance Demo returned duplicate non-zero positions",
                 )
             result[symbol] = _Position(
-                direction=(ScannerDirection.LONG if amount > 0 else ScannerDirection.SHORT),
+                direction=(
+                    ScannerDirection.LONG if amount > 0 else ScannerDirection.SHORT
+                ),
                 quantity=abs(amount),
             )
         return result
@@ -979,7 +993,11 @@ class ProtectiveLifecycleVerificationService:
         fallback: str = "PROTECTIVE_LIFECYCLE_INVALID",
     ) -> ProtectiveLifecycleFinding:
         return ProtectiveLifecycleFinding(
-            code=(exc.code if isinstance(exc, ProtectiveLifecycleVerificationError) else fallback),
+            code=(
+                exc.code
+                if isinstance(exc, ProtectiveLifecycleVerificationError)
+                else fallback
+            ),
             message=(
                 exc.message
                 if isinstance(exc, ProtectiveLifecycleVerificationError)

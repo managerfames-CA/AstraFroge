@@ -196,7 +196,9 @@ def test_order_drift_fails_global_gate_closed() -> None:
     gate = _ready_gate()
     service = _service(
         gate,
-        order=_Order(_order(OrderReconciliationState.DRIFT_DETECTED, blocking=True)),
+        order=_Order(
+            _order(OrderReconciliationState.DRIFT_DETECTED, blocking=True)
+        ),
     )
 
     report = service.reconcile()
@@ -214,7 +216,9 @@ def test_position_unavailable_fails_global_gate_closed() -> None:
     gate = _ready_gate()
     service = _service(
         gate,
-        position=_Position(_position(PositionReconciliationState.UNAVAILABLE, blocking=True)),
+        position=_Position(
+            _position(PositionReconciliationState.UNAVAILABLE, blocking=True)
+        ),
     )
 
     report = service.reconcile()

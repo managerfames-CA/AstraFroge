@@ -70,7 +70,6 @@ def test_directional_helpers(
     assert _directional_rsi_margin(Decimal("60"), direction) == rsi_margin
     assert Decimal("0") <= _directional_close_position(item, direction) <= Decimal("1")
 
-
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
@@ -86,14 +85,12 @@ def test_directional_helpers(
 def test_grade_boundaries(value: Decimal, expected: ScannerGrade) -> None:
     assert _grade(int(value)) is expected
 
-
 def test_round_half_up_and_candidate_identity() -> None:
     assert _q(Decimal("84.5")) == 85
     first = _candidate_key("btcusdt", ScannerDirection.LONG, ScannerSetup.TREND_PULLBACK, NOW)
     second = _candidate_key("BTCUSDT", ScannerDirection.LONG, ScannerSetup.TREND_PULLBACK, NOW)
     assert first == second
     assert len(first) == 64
-
 
 def test_selected_ema_tie_prefers_ema20_and_missing_fails() -> None:
     engine = ScannerEngine()
@@ -103,27 +100,17 @@ def test_selected_ema_tie_prefers_ema20_and_missing_fails() -> None:
     with pytest.raises(ScannerEvaluationError, match="No EMA"):
         engine.selected_ema(missing, ScannerDirection.LONG)
 
-
 def test_regime_is_mutually_exclusive() -> None:
     engine = ScannerEngine()
     bullish = base_context(ScannerDirection.LONG).h
     bullish[3] = frame(
-        "104",
-        ema20="104",
-        ema50="99",
-        ema200="89",
-        rsi="60",
-        macd="1",
-        signal="0",
-        histogram="0.2",
-        interval_minutes=60,
-        minutes_ago=180,
+        "104", ema20="104", ema50="99", ema200="89", rsi="60",
+        macd="1", signal="0", histogram="0.2", interval_minutes=60, minutes_ago=180
     )
     assert engine.regime(bullish, "bullish") is ScannerDirection.LONG
     with pytest.raises(ScannerEvaluationError) as exc:
         engine.regime(bullish, "range")
     assert exc.value.code == "TREND_SIDEWAYS"
-
 
 @pytest.mark.parametrize("direction", [ScannerDirection.LONG, ScannerDirection.SHORT])
 def test_shared_entry_long_and_short(direction: ScannerDirection) -> None:
@@ -131,60 +118,27 @@ def test_shared_entry_long_and_short(direction: ScannerDirection) -> None:
     ctx = base_context(direction)
     if direction is ScannerDirection.LONG:
         ctx.e[0] = frame(
-            "102",
-            open_="100",
-            high="102.1",
-            low="100",
-            ema20="101.4",
-            ema50="100",
-            rsi="60",
-            macd="1",
-            signal="0",
-            histogram="0.2",
-            volume_ratio="1.5",
-            interval_minutes=5,
+            "102", open_="100", high="102.1", low="100", ema20="101.4", ema50="100",
+            rsi="60", macd="1", signal="0", histogram="0.2", volume_ratio="1.5",
+            interval_minutes=5
         )
         ctx.e[1] = frame(
-            "100",
-            high="101",
-            low="99",
-            ema20="99",
-            ema50="98",
-            rsi="60",
-            histogram="0.1",
-            interval_minutes=5,
-            minutes_ago=5,
+            "100", high="101", low="99", ema20="99", ema50="98", rsi="60",
+            histogram="0.1", interval_minutes=5, minutes_ago=5
         )
         trigger = Decimal("101.5")
     else:
         ctx.e[0] = frame(
-            "98",
-            open_="100",
-            high="100",
-            low="97.9",
-            ema20="98.6",
-            ema50="100",
-            rsi="40",
-            macd="-1",
-            signal="0",
-            histogram="-0.2",
-            volume_ratio="1.5",
-            interval_minutes=5,
+            "98", open_="100", high="100", low="97.9", ema20="98.6", ema50="100",
+            rsi="40", macd="-1", signal="0", histogram="-0.2", volume_ratio="1.5",
+            interval_minutes=5
         )
         ctx.e[1] = frame(
-            "100",
-            high="101",
-            low="99",
-            ema20="101",
-            ema50="102",
-            rsi="40",
-            histogram="-0.1",
-            interval_minutes=5,
-            minutes_ago=5,
+            "100", high="101", low="99", ema20="101", ema50="102", rsi="40",
+            histogram="-0.1", interval_minutes=5, minutes_ago=5
         )
         trigger = Decimal("98.5")
     assert engine.shared_entry(ctx.e, direction, trigger)
-
 
 @pytest.mark.parametrize("setup", list(ScannerSetup))
 @pytest.mark.parametrize("direction", list(ScannerDirection))
@@ -208,11 +162,5 @@ def test_all_five_setup_formulas_long_and_short(
     assert 0 <= confidence <= 100
     assert grade in set(ScannerGrade)
     assert set(components) == {
-        "trend",
-        "setup",
-        "entry",
-        "momentum",
-        "volume",
-        "liquidity",
-        "freshness",
+        "trend", "setup", "entry", "momentum", "volume", "liquidity", "freshness"
     }

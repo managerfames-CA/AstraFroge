@@ -110,7 +110,9 @@ def test_short_series_reports_incomplete_warmup() -> None:
 
 
 def test_freshness_metadata_is_propagated() -> None:
-    result = IndicatorEngine().calculate(_series([Decimal("100")] * 20, stale=True))
+    result = IndicatorEngine().calculate(
+        _series([Decimal("100")] * 20, stale=True)
+    )
 
     assert result.stale is True
     assert result.cache_age_seconds == 4.5

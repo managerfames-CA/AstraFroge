@@ -139,7 +139,9 @@ class StubLifecycleClient:
         orig_client_order_id: str,
     ) -> dict[str, Any]:
         self.cancelled.append(orig_client_order_id)
-        algo_id = "stop-algo-1" if orig_client_order_id == "af-stop-1" else "take-algo-1"
+        algo_id = (
+            "stop-algo-1" if orig_client_order_id == "af-stop-1" else "take-algo-1"
+        )
         return {
             "symbol": symbol,
             "clientOrderId": orig_client_order_id,
@@ -318,7 +320,11 @@ def test_partial_stop_fill_is_durable_idempotent_and_fail_closed(tmp_path: Path)
     assert source.trade.protective_exit_fill_ids == ["fill-stop"]
     assert gate.snapshot().automation_ready is False
     with repositories.persistence.transaction() as session:
-        events = list(session.query(ExecutionIntentRow).filter_by(operation="PROTECTIVE_LIFECYCLE"))
+        events = list(
+            session.query(ExecutionIntentRow).filter_by(
+                operation="PROTECTIVE_LIFECYCLE"
+            )
+        )
         assert len(events) == 1
 
 

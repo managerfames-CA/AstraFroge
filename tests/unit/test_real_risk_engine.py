@@ -312,62 +312,42 @@ def test_signal_contract_and_configuration_failures_are_explicit() -> None:
     assert assessments[1].blocked_reason == "STOP_LOSS_INVALID"
     assert assessments[2].blocked_reason == "GRADE_NOT_EXECUTABLE"
 
-    no_risk = (
-        _service(
-            [_signal()],
-            client,
-            _settings(risk_per_trade_percent=Decimal("0")),
-        )
-        .assessments()
-        .assessments[0]
-    )
-    no_margin = (
-        _service(
-            [_signal()],
-            client,
-            _settings(risk_max_margin_exposure_usdt=Decimal("0")),
-        )
-        .assessments()
-        .assessments[0]
-    )
+    no_risk = _service(
+        [_signal()],
+        client,
+        _settings(risk_per_trade_percent=Decimal("0")),
+    ).assessments().assessments[0]
+    no_margin = _service(
+        [_signal()],
+        client,
+        _settings(risk_max_margin_exposure_usdt=Decimal("0")),
+    ).assessments().assessments[0]
     assert no_risk.blocked_reason == "RISK_PERCENT_NOT_CONFIGURED"
     assert no_margin.blocked_reason == "MAX_MARGIN_EXPOSURE_NOT_CONFIGURED"
 
 
 def test_margin_available_balance_and_leverage_gates() -> None:
-    low_margin_limit = (
-        _service(
-            [_signal()],
-            StubPrivateClient(),
-            _settings(risk_max_margin_exposure_usdt=Decimal("60")),
-        )
-        .assessments()
-        .assessments[0]
-    )
-    low_balance = (
-        _service(
-            [_signal()],
-            StubPrivateClient(
-                account={
-                    "canTrade": True,
-                    "totalWalletBalance": "1000",
-                    "availableBalance": "5",
-                    "totalUnrealizedProfit": "0",
-                    "totalInitialMargin": "0",
-                }
-            ),
-        )
-        .assessments()
-        .assessments[0]
-    )
-    no_leverage = (
-        _service(
-            [_signal(symbol="BNBUSDT")],
-            StubPrivateClient(),
-        )
-        .assessments()
-        .assessments[0]
-    )
+    low_margin_limit = _service(
+        [_signal()],
+        StubPrivateClient(),
+        _settings(risk_max_margin_exposure_usdt=Decimal("60")),
+    ).assessments().assessments[0]
+    low_balance = _service(
+        [_signal()],
+        StubPrivateClient(
+            account={
+                "canTrade": True,
+                "totalWalletBalance": "1000",
+                "availableBalance": "5",
+                "totalUnrealizedProfit": "0",
+                "totalInitialMargin": "0",
+            }
+        ),
+    ).assessments().assessments[0]
+    no_leverage = _service(
+        [_signal(symbol="BNBUSDT")],
+        StubPrivateClient(),
+    ).assessments().assessments[0]
 
     assert low_margin_limit.blocked_reason == "MAX_MARGIN_EXPOSURE_REACHED"
     assert low_balance.blocked_reason == "AVAILABLE_BALANCE_INSUFFICIENT"

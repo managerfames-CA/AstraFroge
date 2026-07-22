@@ -89,7 +89,9 @@ class Persistence:
         """Upgrade to the latest schema and prove the database is reachable."""
 
         migration_config = Config("alembic.ini")
-        migration_config.set_main_option("sqlalchemy.url", self.database_url.replace("%", "%%"))
+        migration_config.set_main_option(
+            "sqlalchemy.url", self.database_url.replace("%", "%%")
+        )
         command.upgrade(migration_config, "head")
         with self.engine.connect() as connection:
             connection.execute(text("SELECT 1"))

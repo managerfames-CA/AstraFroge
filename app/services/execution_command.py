@@ -298,7 +298,11 @@ class ExecutionCommandService:
             raise AppError(status_code=404, code="SIGNAL_NOT_FOUND", message="Signal not found")
         self._validate_signal(signal)
         assessment = next(
-            (item for item in self._risk.assessments().assessments if item.signal_id == signal_id),
+            (
+                item
+                for item in self._risk.assessments().assessments
+                if item.signal_id == signal_id
+            ),
             None,
         )
         if assessment is None:

@@ -122,7 +122,9 @@ class ScannerFullService(ScannerRuntimeBase):
                     universe = await self._universe.build()
                     universe_age = exchange_time - universe.generated_at
                     if universe_age > UNIVERSE_MAX_AGE:
-                        raise ScannerEvaluationError("UNIVERSE_STALE", "Universe snapshot is stale")
+                        raise ScannerEvaluationError(
+                            "UNIVERSE_STALE", "Universe snapshot is stale"
+                        )
                 except ScannerEvaluationError as exc:
                     run.status = ScannerRunStatus.FAILED
                     run.audits = [
@@ -229,7 +231,9 @@ class ScannerFullService(ScannerRuntimeBase):
                         if existing.lifecycle is CandidateLifecycle.QUALIFIED:
                             candidate.lifecycle = CandidateLifecycle.QUALIFIED
                             candidate.entry_ready = True
-                            candidate.qualification_expires_at = existing.qualification_expires_at
+                            candidate.qualification_expires_at = (
+                                existing.qualification_expires_at
+                            )
                             candidate.score = existing.score
                             candidate.confidence = existing.confidence
                             candidate.grade = existing.grade
@@ -349,7 +353,9 @@ class ScannerFullService(ScannerRuntimeBase):
             )
             return None, audits, context
 
-        candidates = [self._candidate_from_match(context, match, run_id) for match in matches]
+        candidates = [
+            self._candidate_from_match(context, match, run_id) for match in matches
+        ]
         candidates.sort(key=_candidate_order)
         selected = candidates[0]
         for item in candidates[1:]:

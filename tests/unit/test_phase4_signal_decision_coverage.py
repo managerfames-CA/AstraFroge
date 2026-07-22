@@ -505,7 +505,9 @@ async def test_fact_only_scanner_active_refresh_normalizes_legacy_states(
         candidate_id="x" * 64,
         lifecycle=CandidateLifecycle.EXPIRED,
     )
-    service._candidates = {item.candidate_id: item for item in (qualified, watch, terminal)}
+    service._candidates = {
+        item.candidate_id: item for item in (qualified, watch, terminal)
+    }
     service._refresh_provenance = {
         "BTCUSDT": {
             "source_snapshot_version": "z" * 64,

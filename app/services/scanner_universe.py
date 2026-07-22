@@ -117,14 +117,16 @@ class DirectionalScannerUniverse:
                 symbol=item.symbol,
                 code="directional_universe_limit",
                 detail=(
-                    f"Directional rank is outside the final scanner limit of {self._max_symbols}"
+                    "Directional rank is outside the final scanner limit of "
+                    f"{self._max_symbols}"
                 ),
             )
             for item in directional
             if item.symbol not in selected_symbols
         ]
         reranked = [
-            item.model_copy(update={"rank": rank}) for rank, item in enumerate(selected, start=1)
+            item.model_copy(update={"rank": rank})
+            for rank, item in enumerate(selected, start=1)
         ]
         all_rejections = sorted(
             [*broad.rejections, *prefilter_rejections, *overflow_rejections],

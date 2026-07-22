@@ -105,7 +105,8 @@ class OpportunityScannerEngine(ScannerEngine):
         points = (
             Decimal("8.75") * _n_down(distance / atr1, D0, Decimal("0.25"))
             + Decimal("6.25") * _n_up(_body(s0.candle) / atr0, Decimal("0.10"), D1)
-            + Decimal("5") * _n_up(_directional_delta(rsi0, rsi1, direction), D0, Decimal("10"))
+            + Decimal("5")
+            * _n_up(_directional_delta(rsi0, rsi1, direction), D0, Decimal("10"))
             + Decimal("5")
             * _n_up(
                 _directional_delta(hist0, hist1, direction) / atr0,
@@ -136,7 +137,9 @@ class OpportunityScannerEngine(ScannerEngine):
         selected = self.selected_ema(s0, direction)
         body = _body(s0.candle)
         if body <= 0:
-            raise ScannerEvaluationError("INVALID_15M_OHLCV", "EMA rejection body is zero", "15m")
+            raise ScannerEvaluationError(
+                "INVALID_15M_OHLCV", "EMA rejection body is zero", "15m"
+            )
         rsi = _frame_value(s0, "rsi14")
         hist0 = _frame_value(s0, "macd_histogram")
         hist1 = _frame_value(s1, "macd_histogram")
@@ -173,7 +176,8 @@ class OpportunityScannerEngine(ScannerEngine):
                 Decimal("0.70"),
                 Decimal("0.90"),
             )
-            + Decimal("3.75") * _n_up(_frame_value(s0, "volume_ratio"), D1, Decimal("2.50"))
+            + Decimal("3.75")
+            * _n_up(_frame_value(s0, "volume_ratio"), D1, Decimal("2.50"))
         )
         trigger = self._entry_trigger(ScannerSetup.EMA_REJECTION, ctx)
         return self._match(
@@ -232,10 +236,10 @@ class OpportunityScannerService(ScannerService):
         code: str,
         evaluated_at: Any,
     ) -> None:
-        if candidate.evidence.get("soft_volume_warning") is True and code in {
-            "CONFIDENCE_BELOW_60",
-            "SCORE_BELOW_80",
-        }:
+        if (
+            candidate.evidence.get("soft_volume_warning") is True
+            and code in {"CONFIDENCE_BELOW_60", "SCORE_BELOW_80"}
+        ):
             candidate.lifecycle = CandidateLifecycle.WATCH_NEAR
             for audit_code in ("VOLUME_BELOW_MINIMUM", code):
                 if audit_code not in candidate.audit_codes:

@@ -22,7 +22,11 @@ def get_durable_trade_management_service() -> DurableTradeManagementService:
         TradingStateRepositories | None,
         getattr(backend, "_repositories", None),
     )
-    durability = ManualCloseDurabilityService(repositories) if repositories is not None else None
+    durability = (
+        ManualCloseDurabilityService(repositories)
+        if repositories is not None
+        else None
+    )
     return DurableTradeManagementService(
         get_execution_service(),
         get_snapshot_private_client(),

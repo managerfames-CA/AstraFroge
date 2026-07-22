@@ -640,7 +640,9 @@ class OrderAuditService:
                 )
             return
         fill_key = f"BINANCE_DEMO:{symbol}:{fill.exchange_trade_id}"
-        fill_id = hashlib.sha256(f"ORDER_AUDIT_FILL:{fill_key}".encode()).hexdigest()
+        fill_id = hashlib.sha256(
+            f"ORDER_AUDIT_FILL:{fill_key}".encode()
+        ).hexdigest()
         session.add(
             FillRow(
                 fill_id=fill_id,
@@ -732,7 +734,8 @@ class OrderAuditService:
     ) -> tuple[Decimal, Decimal | None]:
         fill_quantity = sum((fill.quantity for fill in fills), Decimal("0"))
         average = (
-            sum((fill.quantity * fill.price for fill in fills), Decimal("0")) / fill_quantity
+            sum((fill.quantity * fill.price for fill in fills), Decimal("0"))
+            / fill_quantity
             if fill_quantity > 0
             else None
         )
@@ -912,7 +915,9 @@ class OrderAuditService:
             return f"stop:{evidence.exchange_order_id}"
         if evidence.role is OrderAuditRole.TAKE_PROFIT:
             return f"take_profit:{evidence.exchange_order_id}"
-        return hashlib.sha256(f"MANUAL_CLOSE_ORDER:{trade.trade_id}".encode()).hexdigest()
+        return hashlib.sha256(
+            f"MANUAL_CLOSE_ORDER:{trade.trade_id}".encode()
+        ).hexdigest()
 
     @staticmethod
     def _finding(code: str, message: str, trade: DemoTradeRecord) -> OrderAuditFinding:

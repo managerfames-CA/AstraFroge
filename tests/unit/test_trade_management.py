@@ -54,7 +54,9 @@ def _trade(
         grade=grade,
         entry_price=entry_price,
         stop_loss_price=Decimal("95") if direction is ScannerDirection.LONG else Decimal("105"),
-        take_profit_price=(Decimal("110") if direction is ScannerDirection.LONG else Decimal("90")),
+        take_profit_price=(
+            Decimal("110") if direction is ScannerDirection.LONG else Decimal("90")
+        ),
         exchange_order_id=f"entry-{trade_id[:4]}",
         client_order_id=f"af-e-{signal_id[:20]}",
         stop_order_id=f"stop-{trade_id[:4]}",
@@ -296,7 +298,9 @@ def test_trade_management_fails_closed_without_verified_realized_pnl() -> None:
         execution,  # type: ignore[arg-type]
         StubCloseClient(
             exit_price="105",
-            income_payload=[{"symbol": "BTCUSDT", "incomeType": "COMMISSION", "income": "-0.01"}],
+            income_payload=[
+                {"symbol": "BTCUSDT", "incomeType": "COMMISSION", "income": "-0.01"}
+            ],
         ),
         now_provider=lambda: NOW,
     )

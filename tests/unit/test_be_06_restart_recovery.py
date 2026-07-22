@@ -50,7 +50,9 @@ def _trade(
         stop_order_id=f"stop-{trade_id}",
         stop_client_order_id=stop_client_order_id or f"stop-client-{trade_id}",
         take_profit_order_id=f"tp-{trade_id}",
-        take_profit_client_order_id=(take_profit_client_order_id or f"tp-client-{trade_id}"),
+        take_profit_client_order_id=(
+            take_profit_client_order_id or f"tp-client-{trade_id}"
+        ),
         requested_quantity=Decimal(quantity),
         executed_quantity=Decimal(quantity),
         order_status="FILLED",

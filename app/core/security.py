@@ -145,7 +145,9 @@ class MutationReplayGuard:
         return ReplayClaimResult.REUSED_FOR_DIFFERENT_REQUEST
 
     def _prune(self, now: datetime) -> None:
-        expired = [key for key, entry in self._entries.items() if entry.expires_at <= now]
+        expired = [
+            key for key, entry in self._entries.items() if entry.expires_at <= now
+        ]
         for key in expired:
             self._entries.pop(key, None)
 

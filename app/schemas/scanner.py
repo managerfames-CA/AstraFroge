@@ -174,7 +174,7 @@ class ScannerAuditRecord(BaseModel):
             "UNIVERSE_UNAVAILABLE",
             "UNIVERSE_STALE",
             "FULL_MARKET_DATA_FAILURE",
-            "SCANNER_SCHEDULER_LEADER_LOST",
+            "SCANNER_SCHEDULER_LEADER_LOST"
         }:
             self.severity = ScannerAuditSeverity.ERROR
             self.blocking = True
@@ -195,7 +195,7 @@ class ScannerAuditRecord(BaseModel):
             "MISSING_REQUIRED_INDICATOR",
             "INDICATOR_CALCULATION_FAILED",
             "STRUCTURE_INSUFFICIENT",
-            "UNIVERSE_ELIGIBILITY_FAILED",
+            "UNIVERSE_ELIGIBILITY_FAILED"
         }:
             self.severity = ScannerAuditSeverity.WARNING
             self.blocking = False
@@ -284,9 +284,9 @@ class ScannerRunSummary(BaseModel):
             self.status in {ScannerRunStatus.COMPLETED, ScannerRunStatus.DEGRADED}
         ) and not any(audit.blocking for audit in self.audits)
         # Block eligibility if failed or if any diagnostics are blocking
-        self.execution_eligibility_blocked = (self.status == ScannerRunStatus.FAILED) or any(
-            audit.blocking for audit in self.audits
-        )
+        self.execution_eligibility_blocked = (
+            self.status == ScannerRunStatus.FAILED
+        ) or any(audit.blocking for audit in self.audits)
         return self
 
 
@@ -348,7 +348,9 @@ class ScannerCandidateSummary(BaseModel):
     def compute_candidate_summary_fields(self) -> ScannerCandidateSummary:
         self.audit_count = len(self.audits)
         self.degraded_state = (
-            self.run_status == ScannerRunStatus.DEGRADED if self.run_status else False
+            self.run_status == ScannerRunStatus.DEGRADED
+            if self.run_status
+            else False
         )
         self.diagnostic_codes = list(
             dict.fromkeys(audit.code for audit in self.audits if audit.code)
@@ -362,8 +364,9 @@ class ScannerCandidateSummary(BaseModel):
         ) and not any(audit.blocking for audit in self.audits)
         # Blocked if failed or any diagnostics are blocking
         self.execution_eligibility_blocked = (
-            self.run_status == ScannerRunStatus.FAILED if self.run_status else True
-        ) or any(audit.blocking for audit in self.audits)
+            (self.run_status == ScannerRunStatus.FAILED if self.run_status else True)
+            or any(audit.blocking for audit in self.audits)
+        )
         return self
 
 

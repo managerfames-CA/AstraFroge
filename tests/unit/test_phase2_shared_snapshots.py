@@ -92,7 +92,9 @@ async def test_concurrent_same_candle_snapshot_collapses_to_one_fetch() -> None:
         now_provider=lambda: now[0],
     )
 
-    results = await asyncio.gather(*(service.candles("BTCUSDT", "15m", 200) for _ in range(5)))
+    results = await asyncio.gather(
+        *(service.candles("BTCUSDT", "15m", 200) for _ in range(5))
+    )
 
     assert len(fake.calls) == 1
     assert fake.exchange_time_calls == 1

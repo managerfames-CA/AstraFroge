@@ -27,7 +27,9 @@ def upgrade() -> None:
                 server_default="BINANCE_DEMO",
             )
         )
-        batch_op.add_column(sa.Column("symbol", sa.String(length=32), nullable=True))
+        batch_op.add_column(
+            sa.Column("symbol", sa.String(length=32), nullable=True)
+        )
 
     # 2. Update existing records in fills to populate symbol from parent exchange_orders
     op.execute(
@@ -52,6 +54,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     with op.batch_alter_table("fills") as batch_op:
         batch_op.drop_constraint("uq_fill_exchange_trade_id", type_="unique")
-        batch_op.create_unique_constraint("uq_fill_exchange_trade_id", ["exchange_trade_id"])
+        batch_op.create_unique_constraint(
+            "uq_fill_exchange_trade_id", ["exchange_trade_id"]
+        )
         batch_op.drop_column("symbol")
         batch_op.drop_column("account_scope")

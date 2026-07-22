@@ -70,8 +70,12 @@ class JournalCostVerificationService:
         if client is None:
             raise JournalSourceVerificationError("DEMO_PRIVATE_API_NOT_CONFIGURED")
 
-        start_ms = int((trade.opened_at - timedelta(minutes=5)).timestamp() * 1000)
-        end_ms = int((trade.closed_at + timedelta(minutes=5)).timestamp() * 1000)
+        start_ms = int(
+            (trade.opened_at - timedelta(minutes=5)).timestamp() * 1000
+        )
+        end_ms = int(
+            (trade.closed_at + timedelta(minutes=5)).timestamp() * 1000
+        )
         payloads = client.income_history(
             start_time_ms=start_ms,
             end_time_ms=end_ms,
@@ -109,10 +113,14 @@ class JournalCostVerificationService:
 
             asset = self._text(payload.get("asset"))
             if asset is not None and asset != "USDT":
-                raise JournalSourceVerificationError("JOURNAL_COST_ASSET_UNSUPPORTED")
+                raise JournalSourceVerificationError(
+                    "JOURNAL_COST_ASSET_UNSUPPORTED"
+                )
             transaction_id = self._text(payload.get("tranId"))
             if transaction_id is None or transaction_id in transaction_ids:
-                raise JournalSourceVerificationError("JOURNAL_INCOME_IDENTITY_INVALID")
+                raise JournalSourceVerificationError(
+                    "JOURNAL_INCOME_IDENTITY_INVALID"
+                )
             amount = self._finite_decimal(payload.get("income"))
             transaction_ids.append(transaction_id)
 
@@ -127,13 +135,17 @@ class JournalCostVerificationService:
                 funding += amount
 
         if not realized_ids:
-            raise JournalSourceVerificationError("JOURNAL_REALIZED_PNL_INCOME_MISSING")
+            raise JournalSourceVerificationError(
+                "JOURNAL_REALIZED_PNL_INCOME_MISSING"
+            )
         if not commission_ids:
             raise JournalSourceVerificationError("JOURNAL_COMMISSION_INCOME_MISSING")
         if commission > 0:
             raise JournalSourceVerificationError("JOURNAL_COMMISSION_SIGN_INVALID")
         if abs(realized_income - source.gross_realized_pnl_usdt) > _PNL_PARITY_TOLERANCE:
-            raise JournalSourceVerificationError("JOURNAL_REALIZED_PNL_INCOME_MISMATCH")
+            raise JournalSourceVerificationError(
+                "JOURNAL_REALIZED_PNL_INCOME_MISMATCH"
+            )
 
         return JournalActualCostEvidence(
             checked_at=self._now(),
@@ -144,7 +156,9 @@ class JournalCostVerificationService:
             realized_pnl_income_usdt=realized_income,
             commission_usdt=commission,
             funding_usdt=funding,
-            net_realized_pnl_usdt=(source.gross_realized_pnl_usdt + commission + funding),
+            net_realized_pnl_usdt=(
+                source.gross_realized_pnl_usdt + commission + funding
+            ),
         )
 
     @staticmethod
@@ -154,7 +168,9 @@ class JournalCostVerificationService:
         try:
             timestamp_ms = int(value)
         except (TypeError, ValueError) as exc:
-            raise JournalSourceVerificationError("JOURNAL_INCOME_TIMESTAMP_INVALID") from exc
+            raise JournalSourceVerificationError(
+                "JOURNAL_INCOME_TIMESTAMP_INVALID"
+            ) from exc
         return start_ms <= timestamp_ms <= end_ms
 
     @staticmethod
@@ -169,7 +185,11 @@ class JournalCostVerificationService:
         try:
             parsed = Decimal(str(value))
         except (InvalidOperation, TypeError, ValueError) as exc:
-            raise JournalSourceVerificationError("JOURNAL_EXCHANGE_DECIMAL_INVALID") from exc
+            raise JournalSourceVerificationError(
+                "JOURNAL_EXCHANGE_DECIMAL_INVALID"
+            ) from exc
         if not parsed.is_finite():
-            raise JournalSourceVerificationError("JOURNAL_EXCHANGE_DECIMAL_INVALID")
+            raise JournalSourceVerificationError(
+                "JOURNAL_EXCHANGE_DECIMAL_INVALID"
+            )
         return parsed

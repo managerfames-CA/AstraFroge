@@ -37,7 +37,10 @@ def _latest_full_scan(service: ScannerService) -> ScannerRunSummary | None:
     if not isinstance(runs, list):
         return None
     for run in reversed(runs):
-        if isinstance(run, ScannerRunSummary) and run.run_type == ScannerRunType.FULL_UNIVERSE_SCAN:
+        if (
+            isinstance(run, ScannerRunSummary)
+            and run.run_type == ScannerRunType.FULL_UNIVERSE_SCAN
+        ):
             return run
     return None
 
@@ -165,7 +168,9 @@ async def scanner_candidates(
     """Return filtered deterministic Scanner candidates."""
 
     normalized_symbol = symbol.strip().upper() if symbol is not None else None
-    if normalized_symbol is not None and (not normalized_symbol or not normalized_symbol.isalnum()):
+    if normalized_symbol is not None and (
+        not normalized_symbol or not normalized_symbol.isalnum()
+    ):
         raise HTTPException(status_code=422, detail="Invalid symbol")
     candidates = [
         candidate

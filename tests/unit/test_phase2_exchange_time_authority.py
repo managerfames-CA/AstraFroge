@@ -138,7 +138,9 @@ async def test_concurrent_requests_bound_exchange_time_and_kline_fetches() -> No
     )
     service = SharedClosedCandleMarketDataService(fake)  # type: ignore[arg-type]
 
-    snapshots = await asyncio.gather(*(service.candles("BTCUSDT", "5m", 1) for _ in range(5)))
+    snapshots = await asyncio.gather(
+        *(service.candles("BTCUSDT", "5m", 1) for _ in range(5))
+    )
 
     assert fake.exchange_time_calls == 1
     assert fake.kline_calls == 1
@@ -168,7 +170,9 @@ async def test_new_exchange_confirmed_candle_advances_snapshot_once() -> None:
     fake.server_time_ms += _INTERVAL_MS["5m"]
     second_closed_ms = _last_closed_ms(fake.server_time_ms, "5m")
     fake.rows = [_row(second_closed_ms, "5m", 110)]
-    refreshed = await asyncio.gather(*(service.candles("BTCUSDT", "5m", 1) for _ in range(3)))
+    refreshed = await asyncio.gather(
+        *(service.candles("BTCUSDT", "5m", 1) for _ in range(3))
+    )
 
     assert fake.exchange_time_calls == 2
     assert fake.kline_calls == 2

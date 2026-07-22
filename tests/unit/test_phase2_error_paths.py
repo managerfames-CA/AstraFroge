@@ -182,7 +182,8 @@ class PayloadFake:
 def test_account_snapshot_rejects_unbounded_income_window() -> None:
     fake = PayloadFake()
     fake.income_payload = [
-        {"incomeType": "REALIZED_PNL", "income": "1", "time": index} for index in range(1000)
+        {"incomeType": "REALIZED_PNL", "income": "1", "time": index}
+        for index in range(1000)
     ]
     with pytest.raises(AccountSnapshotPayloadError, match="bounded result"):
         AccountSnapshotService(fake).get()

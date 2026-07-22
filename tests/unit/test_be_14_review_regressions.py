@@ -153,7 +153,9 @@ def test_orders_endpoint_keeps_stale_records_but_propagates_blocking_state(
     assert body["count"] == 3
     assert body["state"] == "BLOCKED"
     assert body["blocking"] is True
-    assert {item["code"] for item in body["findings"]} == {"ORDER_AUDIT_EXCHANGE_UNAVAILABLE"}
+    assert {item["code"] for item in body["findings"]} == {
+        "ORDER_AUDIT_EXCHANGE_UNAVAILABLE"
+    }
 
 
 def test_unfilled_finished_protective_sibling_is_valid(tmp_path: Path) -> None:
@@ -167,14 +169,12 @@ def test_unfilled_finished_protective_sibling_is_valid(tmp_path: Path) -> None:
     )
     trade = trade.model_copy(update={"protective_exit_reason": DemoTradeCloseReason.TAKE_PROFIT})
 
-    client.take.update(
-        {
-            "status": "FILLED",
-            "executedQty": "0.1",
-            "avgPrice": "104",
-            "actualOrderId": "take-actual-1",
-        }
-    )
+    client.take.update({
+        "status": "FILLED",
+        "executedQty": "0.1",
+        "avgPrice": "104",
+        "actualOrderId": "take-actual-1"
+    })
     client.fills.append(_fill("take-actual-1", "take-fill-1", "0.1", "104", "SELL"))
 
     service = RuntimeOrderAuditService(
@@ -188,7 +188,11 @@ def test_unfilled_finished_protective_sibling_is_valid(tmp_path: Path) -> None:
     report = service.reconcile()
     assert report.state is OrderAuditState.READY
 
-    stop = next(item for item in service.records().records if item.role is OrderAuditRole.STOP_LOSS)
+    stop = next(
+        item
+        for item in service.records().records
+        if item.role is OrderAuditRole.STOP_LOSS
+    )
 
     assert stop.final_status == "FINISHED"
     assert stop.executed_quantity == Decimal("0")
@@ -230,7 +234,10 @@ def test_same_raw_trade_id_is_durable_for_two_symbols(tmp_path: Path) -> None:
         RuntimeOrderAuditService._persist_fill(session, "entry:eth-order", fill)
 
     with repositories.persistence.transaction() as session:
-        records = sorted((item.symbol, item.exchange_trade_id) for item in session.query(FillRow))
+        records = sorted(
+            (item.symbol, item.exchange_trade_id)
+            for item in session.query(FillRow)
+        )
 
     assert records == [("BTCUSDT", "42"), ("ETHUSDT", "42")]
 
@@ -246,14 +253,12 @@ def test_sl_fully_filled_tp_finished_with_zero_fills(tmp_path: Path) -> None:
     )
     trade = trade.model_copy(update={"protective_exit_reason": DemoTradeCloseReason.STOP_LOSS})
 
-    client.stop.update(
-        {
-            "status": "FILLED",
-            "executedQty": "0.1",
-            "avgPrice": "98",
-            "actualOrderId": "stop-actual-1",
-        }
-    )
+    client.stop.update({
+        "status": "FILLED",
+        "executedQty": "0.1",
+        "avgPrice": "98",
+        "actualOrderId": "stop-actual-1"
+    })
     client.fills.append(_fill("stop-actual-1", "stop-fill-1", "0.1", "98", "SELL"))
 
     service = RuntimeOrderAuditService(
@@ -268,7 +273,9 @@ def test_sl_fully_filled_tp_finished_with_zero_fills(tmp_path: Path) -> None:
     assert report.state is OrderAuditState.READY
 
     take = next(
-        item for item in service.records().records if item.role is OrderAuditRole.TAKE_PROFIT
+        item
+        for item in service.records().records
+        if item.role is OrderAuditRole.TAKE_PROFIT
     )
 
     assert take.final_status == "FINISHED"
@@ -296,19 +303,20 @@ def test_unfilled_finished_protective_sibling_fails_without_verified_opposite(
 
     report = service.reconcile()
     assert report.state is OrderAuditState.BLOCKED
-    assert any(item.code == "ORDER_AUDIT_TERMINAL_QUANTITY_INVALID" for item in report.findings)
+    assert any(
+        item.code == "ORDER_AUDIT_TERMINAL_QUANTITY_INVALID"
+        for item in report.findings
+    )
 
 
 def test_finished_with_nonzero_executed_qty_but_missing_fills_fails_closed(tmp_path: Path) -> None:
     client = StubOrderAuditClient()
-    client.stop.update(
-        {
-            "status": "FINISHED",
-            "executedQty": "0.1",
-            "avgPrice": "98",
-            "actualOrderId": "stop-actual-1",
-        }
-    )
+    client.stop.update({
+        "status": "FINISHED",
+        "executedQty": "0.1",
+        "avgPrice": "98",
+        "actualOrderId": "stop-actual-1"
+    })
     # Sibling has executedQty but client.fills does NOT have fills for stop-actual-1!
 
     trade = _trade(
@@ -328,19 +336,20 @@ def test_finished_with_nonzero_executed_qty_but_missing_fills_fails_closed(tmp_p
 
     report = service.reconcile()
     assert report.state is OrderAuditState.BLOCKED
-    assert any(item.code == "ORDER_AUDIT_EXECUTED_QUANTITY_MISMATCH" for item in report.findings)
+    assert any(
+        item.code == "ORDER_AUDIT_EXECUTED_QUANTITY_MISMATCH"
+        for item in report.findings
+    )
 
 
 def test_finished_with_contradictory_actual_order_id_fails_closed(tmp_path: Path) -> None:
     client = StubOrderAuditClient()
-    client.stop.update(
-        {
-            "status": "FINISHED",
-            "executedQty": "0.1",
-            "avgPrice": "98",
-            "actualOrderId": None,  # Contradictory: executed > 0 but actualOrderId is None
-        }
-    )
+    client.stop.update({
+        "status": "FINISHED",
+        "executedQty": "0.1",
+        "avgPrice": "98",
+        "actualOrderId": None  # Contradictory: executed > 0 but actualOrderId is None
+    })
 
     trade = _trade(
         lifecycle=DemoTradeLifecycle.CLOSED,
@@ -360,8 +369,7 @@ def test_finished_with_contradictory_actual_order_id_fails_closed(tmp_path: Path
     report = service.reconcile()
     assert report.state is OrderAuditState.BLOCKED
     assert any(
-        item.code
-        in {
+        item.code in {
             "ORDER_AUDIT_ACTUAL_ORDER_ID_MISSING",
             "ORDER_AUDIT_EXECUTED_QUANTITY_MISMATCH",
         }

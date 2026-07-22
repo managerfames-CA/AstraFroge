@@ -227,7 +227,11 @@ def test_invalid_cost_evidence_fails_closed(
 
 
 def test_unrelated_trade_ids_are_not_attributed() -> None:
-    income = [item for item in _valid_income() if item["incomeType"] != "COMMISSION"]
+    income = [
+        item
+        for item in _valid_income()
+        if item["incomeType"] != "COMMISSION"
+    ]
     income.append(
         _income(
             income_type="COMMISSION",
@@ -292,7 +296,9 @@ def test_ambiguous_income_transactions_reject_all_affected_records() -> None:
         _VerifiedTrade(trade=_trade(), evidence=_source(), costs=shared_costs),
     ]
 
-    accepted, rejected = JournalPerformanceService._remove_ambiguous_income_records(records)
+    accepted, rejected = JournalPerformanceService._remove_ambiguous_income_records(
+        records
+    )
 
     assert accepted == []
     assert rejected == 2

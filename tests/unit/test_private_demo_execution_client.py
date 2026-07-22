@@ -120,7 +120,10 @@ def test_market_and_protective_orders_publish_hardened_parameters() -> None:
     assert protective["clientOrderId"] == "af-s-example"
     assert protective["orderId"] == 3
     assert protective["status"] == "NEW"
-    assert all("signature" in params and "timestamp" in params for _, _, params in captured)
+    assert all(
+        "signature" in params and "timestamp" in params
+        for _, _, params in captured
+    )
 
 
 def test_protective_submit_unknown_state_recovers_from_algo_query() -> None:

@@ -143,16 +143,13 @@ def test_duplicate_stable_ids_do_not_create_duplicates(
     repositories: TradingStateRepositories,
 ) -> None:
     _save_signal(repositories)
-    assert (
-        repositories.save_signal(
-            signal_id="s" * 64,
-            lifecycle="ACTIVE",
-            payload={"different": True},
-            created_at=NOW,
-            updated_at=NOW,
-        )
-        is False
-    )
+    assert repositories.save_signal(
+        signal_id="s" * 64,
+        lifecycle="ACTIVE",
+        payload={"different": True},
+        created_at=NOW,
+        updated_at=NOW,
+    ) is False
     with repositories.persistence.transaction() as session:
         count = session.scalar(select(func.count()).select_from(SignalRow))
     assert count == 1
@@ -377,7 +374,8 @@ def test_astraforge_database_url_takes_precedence_over_standard_fallback(
     )
 
     assert (
-        validate_database_url(production) == "postgresql+psycopg://app-user:secret@app-host/app-db"
+        validate_database_url(production)
+        == "postgresql+psycopg://app-user:secret@app-host/app-db"
     )
 
 
@@ -646,8 +644,8 @@ def test_runtime_bundle_contains_alembic_config_and_migrations(
 
 def test_dockerfile_explicitly_copies_alembic_runtime_artifacts() -> None:
     dockerfile = Path("Dockerfile").read_text(encoding="utf-8")
-    assert "COPY alembic.ini ./" in dockerfile
-    assert "COPY migrations ./migrations" in dockerfile
+    assert 'COPY alembic.ini ./' in dockerfile
+    assert 'COPY migrations ./migrations' in dockerfile
 
 
 def test_signal_lifecycle_event_id_longer_than_64_chars_can_be_saved(
