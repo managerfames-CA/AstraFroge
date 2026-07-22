@@ -144,9 +144,7 @@ def test_signal_identity_is_independent_stable_and_duplicate_safe() -> None:
     assert record.created_at == NOW
     assert record.updated_at == NOW
     assert record.source_run_id == "scanner-run-1"
-    assert [item.lifecycle for item in record.lifecycle_history] == [
-        SignalLifecycle.ACTIVE
-    ]
+    assert [item.lifecycle for item in record.lifecycle_history] == [SignalLifecycle.ACTIVE]
 
 
 def test_non_lifecycle_update_increments_version_once_without_history_entry() -> None:

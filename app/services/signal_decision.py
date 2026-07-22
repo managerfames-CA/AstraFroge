@@ -146,10 +146,7 @@ class SignalDecisionEngine:
             and candidate.confidence >= 70
         )
         ready = bool(
-            fresh
-            and grade_ready
-            and numeric_ready
-            and trigger_status is EntryTriggerStatus.READY
+            fresh and grade_ready and numeric_ready and trigger_status is EntryTriggerStatus.READY
         )
 
         if rejection_reasons:

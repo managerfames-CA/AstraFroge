@@ -42,9 +42,7 @@ MINIMUM_CANDLES = MIN_CLOSED_CANDLES
 FRESHNESS_LIMITS = TIMEFRAME_MAX_AGE
 MAX_SELECTED_CANDIDATES = SCANNER_MAX_SYMBOLS
 EXPIRY_LIMITS = {ScannerSetup(key): value for key, value in SETUP_EXPIRY.items()}
-SETUP_MINIMUM_VOLUME = {
-    ScannerSetup(key): value for key, value in SETUP_MIN_VOLUME_RATIO.items()
-}
+SETUP_MINIMUM_VOLUME = {ScannerSetup(key): value for key, value in SETUP_MIN_VOLUME_RATIO.items()}
 SETUP_NAMES = {ScannerSetup(key): value for key, value in STRING_SETUP_NAMES.items()}
 WATCH_CODES = WATCH_REASON_CODES
 TERMINAL_CODES = INVALIDATION_CODES

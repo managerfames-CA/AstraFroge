@@ -154,9 +154,7 @@ class ExecutionCommandRepository:
 
             concurrent = self._by_identity(session, command.idempotency_key)
             if concurrent is None:
-                raise RuntimeError(
-                    "Execution command insert conflicted without a durable row"
-                )
+                raise RuntimeError("Execution command insert conflicted without a durable row")
             return self._model(concurrent)
 
     def get(self, command_id: str) -> ExecutionCommand | None:
@@ -334,9 +332,7 @@ class ExecutionCommandRepository:
     def counts(self) -> tuple[dict[ExecutionCommandState, int], datetime | None]:
         with self.persistence.transaction() as session:
             rows = session.execute(
-                select(ExecutionCommandRow.state, func.count()).group_by(
-                    ExecutionCommandRow.state
-                )
+                select(ExecutionCommandRow.state, func.count()).group_by(ExecutionCommandRow.state)
             ).all()
             updated = session.scalar(select(func.max(ExecutionCommandRow.updated_at)))
         counts = {state: 0 for state in ExecutionCommandState}
@@ -450,9 +446,7 @@ class ExecutionCommandRepository:
                 reason=reason,
                 payload_json=_json(
                     {
-                        "from_state": (
-                            from_state.value if from_state is not None else None
-                        ),
+                        "from_state": (from_state.value if from_state is not None else None),
                         "to_state": to_state.value,
                         "reason": reason,
                     }
@@ -466,9 +460,7 @@ class ExecutionCommandRepository:
         session: Session,
         command_id: str,
     ) -> ExecutionCommandRow | None:
-        statement = select(ExecutionCommandRow).where(
-            ExecutionCommandRow.command_id == command_id
-        )
+        statement = select(ExecutionCommandRow).where(ExecutionCommandRow.command_id == command_id)
         return session.scalar(statement.with_for_update())
 
     @staticmethod
@@ -497,17 +489,13 @@ class ExecutionCommandRepository:
         if dialect == "postgresql":
             result = cast(
                 CursorResult[Any],
-                session.execute(
-                    postgresql_insert(table).values(**values).on_conflict_do_nothing()
-                ),
+                session.execute(postgresql_insert(table).values(**values).on_conflict_do_nothing()),
             )
             return result.rowcount > 0
         if dialect == "sqlite":
             result = cast(
                 CursorResult[Any],
-                session.execute(
-                    sqlite_insert(table).values(**values).on_conflict_do_nothing()
-                ),
+                session.execute(sqlite_insert(table).values(**values).on_conflict_do_nothing()),
             )
             return result.rowcount > 0
         session.add(ExecutionCommandRow(**values))

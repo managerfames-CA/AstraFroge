@@ -50,11 +50,7 @@ def _trade(
     closed_at: datetime | None = None,
     close_reason: DemoTradeCloseReason | None = None,
 ) -> DemoTradeRecord:
-    stop_loss_price = (
-        Decimal("95")
-        if direction is ScannerDirection.LONG
-        else Decimal("105")
-    )
+    stop_loss_price = Decimal("95") if direction is ScannerDirection.LONG else Decimal("105")
     return DemoTradeRecord(
         trade_id=trade_id,
         signal_id=signal_id,
@@ -67,11 +63,7 @@ def _trade(
         grade=grade,
         entry_price=entry_price,
         stop_loss_price=stop_loss_price,
-        take_profit_price=(
-            Decimal("110")
-            if direction is ScannerDirection.LONG
-            else Decimal("90")
-        ),
+        take_profit_price=(Decimal("110") if direction is ScannerDirection.LONG else Decimal("90")),
         exit_price=exit_price,
         exchange_order_id=f"entry-{trade_id[:4]}",
         client_order_id=f"af-e-{signal_id[:20]}",
@@ -251,9 +243,7 @@ class StubExchangeClient:
         end_time_ms: int,
         limit: int = 1000,
     ) -> list[dict[str, Any]]:
-        recent_boundary = int(
-            (NOW - timedelta(days=1)).timestamp() * 1000
-        )
+        recent_boundary = int((NOW - timedelta(days=1)).timestamp() * 1000)
         symbol = "BTCUSDT" if end_time_ms > recent_boundary else "ETHUSDT"
         realized_pnl = "4" if symbol == "BTCUSDT" else "-2"
         funding = "-0.2" if symbol == "BTCUSDT" else "0.1"
@@ -306,10 +296,7 @@ def test_journal_performance_status_uses_actual_cost_net_pnl() -> None:
     assert status.summary.commission_usdt == Decimal("-0.2")
     assert status.summary.funding_fees_usdt == Decimal("-0.1")
     assert status.summary.realized_pnl_usdt == Decimal("1.7")
-    assert (
-        status.summary.pnl_source
-        is JournalPnlSource.VERIFIED_FILLS_NET_ACTUAL_COSTS
-    )
+    assert status.summary.pnl_source is JournalPnlSource.VERIFIED_FILLS_NET_ACTUAL_COSTS
 
 
 def test_journal_entries_ignore_process_cost_and_pnl_values() -> None:
@@ -338,10 +325,7 @@ def test_journal_entries_ignore_process_cost_and_pnl_values() -> None:
     assert entry.commission_usdt == Decimal("-0.1")
     assert entry.funding_fees_usdt == Decimal("-0.2")
     assert entry.realized_pnl_usdt == Decimal("3.7")
-    assert (
-        entry.pnl_source
-        is JournalPnlSource.VERIFIED_FILLS_NET_ACTUAL_COSTS
-    )
+    assert entry.pnl_source is JournalPnlSource.VERIFIED_FILLS_NET_ACTUAL_COSTS
     assert entry.commission_transaction_ids == ["commission-BTCUSDT"]
     assert entry.funding_transaction_ids == ["funding-BTCUSDT"]
     assert entry.hold_minutes == 60
@@ -375,10 +359,7 @@ def test_unverified_exchange_record_is_rejected_from_journal() -> None:
     assert journal.entries[0].symbol == "BTCUSDT"
     assert journal.rejected_count == 1
     assert "JOURNAL_ENTRY_ORDER_NOT_FILLED" in journal.rejection_codes
-    assert (
-        status.state
-        is JournalPerformanceState.SOURCE_VERIFICATION_INCOMPLETE
-    )
+    assert status.state is JournalPerformanceState.SOURCE_VERIFICATION_INCOMPLETE
 
 
 def test_missing_private_client_returns_no_process_only_records() -> None:
@@ -393,8 +374,5 @@ def test_missing_private_client_returns_no_process_only_records() -> None:
     assert journal.count == 0
     assert journal.candidate_count == 2
     assert journal.rejected_count == 2
-    assert (
-        journal.source_state
-        is JournalPerformanceState.EXCHANGE_VERIFICATION_UNAVAILABLE
-    )
+    assert journal.source_state is JournalPerformanceState.EXCHANGE_VERIFICATION_UNAVAILABLE
     assert journal.rejection_codes == ["DEMO_PRIVATE_API_NOT_CONFIGURED"]

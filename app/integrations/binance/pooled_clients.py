@@ -102,9 +102,7 @@ class PooledBinanceDemoRecoveryClient(BinanceDemoRecoveryClient):
             response = self._http_client.request(method, path, params=request_params)
             response.raise_for_status()
         except (httpx.TimeoutException, httpx.NetworkError) as exc:
-            raise BinanceDemoPrivateClientError(
-                "Binance demo private API is unavailable"
-            ) from exc
+            raise BinanceDemoPrivateClientError("Binance demo private API is unavailable") from exc
         except httpx.HTTPStatusError as exc:
             status_code = exc.response.status_code
             exchange_code: int | None = None

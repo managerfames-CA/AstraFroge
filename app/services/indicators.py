@@ -85,12 +85,12 @@ def _rsi(closes: list[Decimal], period: int) -> list[Decimal | None]:
     result[period] = value(average_gain, average_loss)
     for close_index in range(period + 1, len(closes)):
         change_index = close_index - 1
-        average_gain = (
-            (average_gain * Decimal(period - 1)) + gains[change_index]
-        ) / Decimal(period)
-        average_loss = (
-            (average_loss * Decimal(period - 1)) + losses[change_index]
-        ) / Decimal(period)
+        average_gain = ((average_gain * Decimal(period - 1)) + gains[change_index]) / Decimal(
+            period
+        )
+        average_loss = ((average_loss * Decimal(period - 1)) + losses[change_index]) / Decimal(
+            period
+        )
         result[close_index] = value(average_gain, average_loss)
     return result
 
@@ -132,9 +132,7 @@ def _vwap(candles: list[MarketCandle]) -> list[Decimal | None]:
         typical_price = (candle.high + candle.low + candle.close) / Decimal("3")
         cumulative_value += typical_price * candle.volume
         cumulative_volume += candle.volume
-        result.append(
-            cumulative_value / cumulative_volume if cumulative_volume > 0 else None
-        )
+        result.append(cumulative_value / cumulative_volume if cumulative_volume > 0 else None)
     return result
 
 

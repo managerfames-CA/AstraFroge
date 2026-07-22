@@ -64,9 +64,7 @@ class ActiveTradeAuthorityService:
             state = base.state
         return TradeManagementStatusResponse(
             state=state,
-            exchange_authoritative_active_trades=(
-                active.exchange_authoritative_open_trades
-            ),
+            exchange_authoritative_active_trades=(active.exchange_authoritative_open_trades),
             execution_engine_state=base.execution_engine_state,
             max_open_trades_limit=base.max_open_trades_limit,
             tracked_trade_count=base.tracked_trade_count,
@@ -84,12 +82,8 @@ class ActiveTradeAuthorityService:
             updated_at=active.position_snapshot_at or base.updated_at,
             summary=TradeManagementSummary(
                 manual_demo_trades=len(open_trades),
-                long_demo=sum(
-                    trade.direction is ScannerDirection.LONG for trade in open_trades
-                ),
-                short_demo=sum(
-                    trade.direction is ScannerDirection.SHORT for trade in open_trades
-                ),
+                long_demo=sum(trade.direction is ScannerDirection.LONG for trade in open_trades),
+                short_demo=sum(trade.direction is ScannerDirection.SHORT for trade in open_trades),
                 combined_unrealized_pnl_usdt=sum(
                     (trade.unrealized_pnl_usdt for trade in open_trades),
                     Decimal("0"),
@@ -104,12 +98,8 @@ class ActiveTradeAuthorityService:
     def trades(self, filters: TradeListFilters) -> ManagedTradeRecordList:
         """Return verified open trades and optional durable closed history."""
 
-        durable = self._trade_source.trades(
-            TradeListFilters(include_closed=True)
-        ).trades
-        open_candidates = [
-            trade for trade in durable if trade.lifecycle is DemoTradeLifecycle.OPEN
-        ]
+        durable = self._trade_source.trades(TradeListFilters(include_closed=True)).trades
+        open_candidates = [trade for trade in durable if trade.lifecycle is DemoTradeLifecycle.OPEN]
         closed_records = [
             trade for trade in durable if trade.lifecycle is DemoTradeLifecycle.CLOSED
         ]
@@ -264,14 +254,10 @@ class ActiveTradeAuthorityService:
         if filters.symbol is not None:
             filtered = [trade for trade in filtered if trade.symbol == filters.symbol]
         if filters.direction is not None:
-            filtered = [
-                trade for trade in filtered if trade.direction is filters.direction
-            ]
+            filtered = [trade for trade in filtered if trade.direction is filters.direction]
         if filters.min_grade is not None:
             filtered = [
-                trade
-                for trade in filtered
-                if cls._meets_min_grade(trade, filters.min_grade)
+                trade for trade in filtered if cls._meets_min_grade(trade, filters.min_grade)
             ]
         if filters.sort_by is TradeSortBy.UNREALIZED_PNL_DESC:
             return sorted(

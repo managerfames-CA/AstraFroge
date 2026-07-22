@@ -99,11 +99,7 @@ def _signal(
         confidence=80,
         entry_ready=entry_ready,
         entry_trigger_price=Decimal("100"),
-        stop_loss_price=(
-            Decimal("95")
-            if direction is ScannerDirection.LONG
-            else Decimal("105")
-        ),
+        stop_loss_price=(Decimal("95") if direction is ScannerDirection.LONG else Decimal("105")),
         reference_close_time=NOW - timedelta(minutes=15),
         setup_confirmed_at=NOW - timedelta(minutes=15),
         expires_at=expires_at,
@@ -157,11 +153,7 @@ def _assessment(
         current_margin_exposure_usdt=Decimal("0"),
         max_open_trades_limit=4,
         updated_at=updated_at,
-        audit_codes=(
-            ["RISK_APPROVED"]
-            if decision is RiskDecision.APPROVED
-            else ["BLOCKED"]
-        ),
+        audit_codes=(["RISK_APPROVED"] if decision is RiskDecision.APPROVED else ["BLOCKED"]),
     )
 
 
@@ -475,8 +467,7 @@ def test_illegal_transition_and_stale_claim_recovery(
     assert reclaimed is not None
     assert reclaimed.worker_id == "worker-2"
     assert any(
-        item.reason == "STALE_WORKER_CLAIM"
-        for item in repository.history(command.command_id)
+        item.reason == "STALE_WORKER_CLAIM" for item in repository.history(command.command_id)
     )
 
 
@@ -694,9 +685,7 @@ def test_migration_and_openapi_contract_are_additive(
     application = create_app(_settings(enabled=False))
     schema = application.openapi()
     activation = schema["paths"]["/api/v1/execution/demo/activate/{signal_id}"]["post"]
-    response_schema = activation["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]
+    response_schema = activation["responses"]["200"]["content"]["application/json"]["schema"]
     assert response_schema["$ref"].endswith("ExecutionCommand")
     assert "/api/v1/execution/demo/commands" in schema["paths"]
     assert "/api/v1/execution/demo/worker/status" in schema["paths"]

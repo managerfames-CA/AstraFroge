@@ -87,9 +87,7 @@ class RuntimeOrderAuditService(OrderAuditService):
                 )
             return
         fill_key = f"BINANCE_DEMO:{order.symbol}:{fill.exchange_trade_id}"
-        fill_id = hashlib.sha256(
-            f"ORDER_AUDIT_FILL:{fill_key}".encode()
-        ).hexdigest()
+        fill_id = hashlib.sha256(f"ORDER_AUDIT_FILL:{fill_key}".encode()).hexdigest()
         session.add(
             FillRow(
                 fill_id=fill_id,
@@ -155,9 +153,7 @@ class RuntimeOrderAuditService(OrderAuditService):
                 "ORDER_AUDIT_NEW_STATUS_HAS_FILL",
                 "NEW order has executed quantity",
             )
-        if status == "PARTIALLY_FILLED" and not (
-            Decimal("0") < executed < requested
-        ):
+        if status == "PARTIALLY_FILLED" and not (Decimal("0") < executed < requested):
             raise OrderAuditVerificationError(
                 "ORDER_AUDIT_PARTIAL_STATUS_INVALID",
                 "PARTIALLY_FILLED economics are invalid",
@@ -219,11 +215,7 @@ class RuntimeOrderAuditService(OrderAuditService):
                             "does not match trade protective exit filled quantity "
                             f"{trade.protective_exit_filled_quantity}",
                         )
-        if (
-            status == "FINISHED"
-            and role not in _PROTECTIVE_ROLES
-            and executed != requested
-        ):
+        if status == "FINISHED" and role not in _PROTECTIVE_ROLES and executed != requested:
             raise OrderAuditVerificationError(
                 "ORDER_AUDIT_TERMINAL_QUANTITY_INVALID",
                 "Non-protective FINISHED order does not equal requested quantity",

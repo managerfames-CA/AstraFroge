@@ -55,10 +55,9 @@ class SymbolTradingRules:
 
         if raw_quantity < self.quantity_min:
             raise ExchangeRuleError("Risk-approved quantity is below the exchange minimum")
-        normalized = (
-            (raw_quantity / self.quantity_step).to_integral_value(rounding=ROUND_DOWN)
-            * self.quantity_step
-        )
+        normalized = (raw_quantity / self.quantity_step).to_integral_value(
+            rounding=ROUND_DOWN
+        ) * self.quantity_step
         if normalized < self.quantity_min or normalized > self.quantity_max:
             raise ExchangeRuleError("Risk-approved quantity is outside exchange limits")
         if normalized % self.quantity_step != 0:
@@ -82,10 +81,9 @@ class SymbolTradingRules:
             else direction is ScannerDirection.LONG
         )
         rounding = ROUND_UP if round_up else ROUND_DOWN
-        normalized = (
-            (raw_price / self.price_tick).to_integral_value(rounding=rounding)
-            * self.price_tick
-        )
+        normalized = (raw_price / self.price_tick).to_integral_value(
+            rounding=rounding
+        ) * self.price_tick
         if normalized < self.price_min or normalized > self.price_max:
             raise ExchangeRuleError("Protective trigger price is outside exchange limits")
         if normalized % self.price_tick != 0:
@@ -114,11 +112,7 @@ def parse_symbol_trading_rules(
     if not isinstance(symbols, list):
         raise ExchangeRuleError("Exchange symbol metadata is unavailable")
     payload = next(
-        (
-            item
-            for item in symbols
-            if isinstance(item, dict) and item.get("symbol") == symbol
-        ),
+        (item for item in symbols if isinstance(item, dict) and item.get("symbol") == symbol),
         None,
     )
     if payload is None:

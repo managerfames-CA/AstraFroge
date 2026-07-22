@@ -538,8 +538,7 @@ class FreshAccountExecutionService(DemoExecutionService):
                 status_code=503,
                 code="ACCOUNT_SNAPSHOT_REFRESH_FAILED",
                 message=(
-                    "Fresh Binance Demo account state could not be proven; "
-                    "new entry is blocked"
+                    "Fresh Binance Demo account state could not be proven; new entry is blocked"
                 ),
             ) from exc
 
@@ -593,11 +592,7 @@ def to_execution_account_response(snapshot: AccountSnapshot) -> DemoExecutionAcc
     positions = [
         DemoPositionSnapshot(
             symbol=item.symbol,
-            side=(
-                ScannerDirection.LONG
-                if item.position_amount > 0
-                else ScannerDirection.SHORT
-            ),
+            side=(ScannerDirection.LONG if item.position_amount > 0 else ScannerDirection.SHORT),
             quantity=abs(item.position_amount),
             entry_price=item.entry_price,
             unrealized_pnl=item.unrealized_pnl,
