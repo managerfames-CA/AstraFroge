@@ -84,7 +84,7 @@ jobs:
         if: steps.pytest.outputs.status != '0'
         run: exit 1
       - name: FastAPI import smoke test
-        run: python -c "from app.main import app; assert app.title == 'AstraForge Crypto Backend'"
+        run: python tests/unit/test_fastapi_smoke.py
 
   container:
     runs-on: ubuntu-latest
