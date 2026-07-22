@@ -127,6 +127,29 @@ class DemoExecutionService:
             default=risk_status.updated_at,
         )
         state = self._state_from_risk(risk_status.state)
+
+        integration_ready = True
+        unavailable_reason = None
+
+        if not execution_enabled:
+            integration_ready = False
+            unavailable_reason = "Demo execution is disabled in settings."
+        elif not self._settings.demo_credentials_configured:
+            integration_ready = False
+            unavailable_reason = "Binance Demo credentials are not configured."
+        elif self._private_client is None:
+            integration_ready = False
+            unavailable_reason = "Binance demo private API client is not configured."
+        elif self._settings.execution_take_profit_r_multiple <= 0:
+            integration_ready = False
+            unavailable_reason = "Take Profit policy is not configured."
+        elif state is not DemoExecutionState.READY:
+            integration_ready = False
+            unavailable_reason = (
+                f"Execution engine is not ready (state: {state.value}, "
+                f"risk state: {risk_status.state.value})."
+            )
+
         return DemoExecutionStatusResponse(
             state=state,
             execution_enabled=execution_enabled,
@@ -145,6 +168,8 @@ class DemoExecutionService:
                 (trade.tracked_margin_usdt for trade in open_trades),
                 Decimal("0"),
             ),
+            execution_integration_ready=integration_ready,
+            execution_unavailable_reason=unavailable_reason,
             updated_at=updated_at,
             summary=summary,
         )
