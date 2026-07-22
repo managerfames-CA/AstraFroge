@@ -33,7 +33,7 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 - [ ] BE-22: Run and pass the full Pytest suite with the required coverage threshold.
 - [x] BE-23: Run and pass FastAPI import smoke verification. (Evidence: [docs/BE_23_COMPLETION_EVIDENCE.md](docs/BE_23_COMPLETION_EVIDENCE.md))
 - [ ] BE-24: Run and pass Docker build verification.
-- [ ] BE-25: Confirm the latest direct main commits have successful GitHub Actions evidence.
+- [x] BE-25: Confirm the latest direct main commits have successful GitHub Actions evidence. (Evidence: [docs/BE_25_COMPLETION_EVIDENCE.md](docs/BE_25_COMPLETION_EVIDENCE.md))
 - [ ] BE-26: Keep README progress, merged PR status and current task synchronized with repository reality.
 - [ ] BE-27: Verify deployed health, market, Scanner, Signal, Risk and Demo read-only endpoints.
 - [ ] BE-28: Verify protected mutation authentication and idempotency against the deployed Demo runtime.
@@ -68,3 +68,4 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 | **BE-19** | Publish stable typed contracts required by Frontend Signals, Risk, Demo Account, Execution, Active Trades and Journal pages. | [docs/BE_19_EXECUTION_STATUS_AUDIT.md](docs/BE_19_EXECUTION_STATUS_AUDIT.md) | PR #2 / Commit `77a6c97b23a7a5bbbedeb6338f5e6ab767b9be93` | Completed |
 | **BE-20** | Run and pass Ruff on latest main. | [docs/BE_20_COMPLETION_EVIDENCE.md](docs/BE_20_COMPLETION_EVIDENCE.md) | PR #3 / Branch jules-12746788728458930920-74e9f99d | Completed |
 | **BE-23** | Run and pass FastAPI import smoke verification. | [docs/BE_23_COMPLETION_EVIDENCE.md](docs/BE_23_COMPLETION_EVIDENCE.md) | PR #4 / Branch jules-be-23-smoke-verification | Completed |
+| **BE-25** | Confirm the latest direct main commits have successful GitHub Actions evidence. | [docs/BE_25_COMPLETION_EVIDENCE.md](docs/BE_25_COMPLETION_EVIDENCE.md) | PR #6 / Commit `b7f6c965bea72c094d1dc1e7f8969b72b67c6a06` | Completed |
