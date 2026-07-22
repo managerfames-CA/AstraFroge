@@ -24,10 +24,10 @@ from app.schemas.scanner import ScannerDirection, ScannerGrade, ScannerSetup
 from app.schemas.signals import SignalLifecycle
 from app.services.execution import DemoExecutionService
 from app.services.execution_leader_safety import (
+    ExecutionLeaderLost,
     LeaderValidatedExecutionService,
     ValidatedExecutionLeaderLease,
     validate_leader_or_fail_closed,
-    ExecutionLeaderLost,
 )
 from app.services.recovery import AutomationRecoveryGate
 from tests.unit.scanner_test_support import NOW
@@ -160,7 +160,11 @@ class _Execution:
         if signal_id == "raise_generic_app_error":
             raise AppError(status_code=400, code="GENERIC_ERROR", message="Generic error")
         if signal_id == "raise_recovery_not_complete":
-            raise AppError(status_code=409, code="RECOVERY_NOT_COMPLETE", message="Recovery not complete")
+            raise AppError(
+                status_code=409,
+                code="RECOVERY_NOT_COMPLETE",
+                message="Recovery not complete",
+            )
         return SimpleNamespace(signal_id=signal_id)
 
     def trades(self) -> Any:
@@ -300,6 +304,7 @@ def test_valid_leader_and_recovery_ready_still_allow_execution() -> None:
 
 # --- Additional unit tests for 100% code coverage ---
 
+
 def test_acquire_already_has_valid_connection() -> None:
     state = _SharedAdvisoryState()
     lease, _ = _lease(state)
@@ -312,7 +317,8 @@ def test_acquire_has_invalid_connection() -> None:
     lease, persistence = _lease(state)
     # Invalidate connection
     persistence.engine.connections[0].drop_database_session()
-    # lease._connection is set but invalid. Calling acquire() should catch ExecutionLeaderLost and call super().acquire()
+    # lease._connection is set but invalid. Calling acquire() should
+    # catch ExecutionLeaderLost and call super().acquire()
     assert lease.acquire() is True
     assert lease._connection is not None
 
@@ -404,7 +410,7 @@ def test_service_status_validation() -> None:
 
     # Lose lease, status call should fail-closed the gate but still return response
     persistence.engine.connections[0].drop_database_session()
-    resp2 = service.status()
+    _ = service.status()
     assert gate.snapshot().automation_ready is False
 
 

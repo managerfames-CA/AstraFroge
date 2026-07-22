@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          pytest -q --cov=app --cov-report=term-missing > pytest-output.txt 2>&1
+          pytest -q --cov=app --cov-report=term-missing --cov-fail-under=90 > pytest-output.txt 2>&1
           status=$?
           cat pytest-output.txt
           echo "status=$status" >> "$GITHUB_OUTPUT"
