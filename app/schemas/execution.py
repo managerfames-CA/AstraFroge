@@ -178,6 +178,8 @@ class DemoExecutionStatusResponse(BaseModel):
     automation_ready: bool = False
     last_recovery_at: datetime | None = None
     recovery_error: str | None = None
+    execution_integration_ready: bool = False
+    execution_unavailable_reason: str | None = None
     updated_at: datetime | None = None
     summary: DemoExecutionSummary
 

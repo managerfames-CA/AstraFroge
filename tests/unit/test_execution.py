@@ -403,3 +403,127 @@ def test_execution_service_reloads_persisted_trades(tmp_path) -> None:  # type: 
 
     assert opened_trade.trade_id in {trade.trade_id for trade in reloaded.trades().trades}
     assert reloaded.trades().count == 1
+
+
+def test_execution_integration_status_fields() -> None:
+    from pydantic import SecretStr
+
+    # Scenario 1: Execution disabled
+    settings_disabled = Settings.model_construct(
+        execution_enabled=False,
+        binance_demo_api_key=SecretStr("demo-key"),
+        binance_demo_api_secret=SecretStr("demo-secret"),
+        execution_take_profit_r_multiple=Decimal("2.0"),
+        risk_max_open_trades=4,
+    )
+    service = DemoExecutionService(
+        StubRisk(),  # type: ignore[arg-type]
+        settings_disabled,
+    )
+    status = service.status()
+    assert status.execution_integration_ready is False
+    assert status.execution_unavailable_reason == "Demo execution is disabled in settings."
+
+    # Scenario 2: Missing credentials
+    settings_no_creds = Settings.model_construct(
+        execution_enabled=True,
+        binance_demo_api_key=None,
+        binance_demo_api_secret=None,
+        execution_take_profit_r_multiple=Decimal("2.0"),
+        risk_max_open_trades=4,
+    )
+    service = DemoExecutionService(
+        StubRisk(),  # type: ignore[arg-type]
+        settings_no_creds,
+        StubDemoClient(),
+    )
+    status = service.status()
+    assert status.execution_integration_ready is False
+    assert status.execution_unavailable_reason == "Binance Demo credentials are not configured."
+
+    # Scenario 3: Private API not available (client is None)
+    settings_creds = Settings.model_construct(
+        execution_enabled=True,
+        binance_demo_api_key=SecretStr("demo-key"),
+        binance_demo_api_secret=SecretStr("demo-secret"),
+        execution_take_profit_r_multiple=Decimal("2.0"),
+        risk_max_open_trades=4,
+    )
+    service = DemoExecutionService(
+        StubRisk(),  # type: ignore[arg-type]
+        settings_creds,
+        None,  # Client is None
+    )
+    status = service.status()
+    assert status.execution_integration_ready is False
+    expected_api_msg = "Binance demo private API client is not configured."
+    assert status.execution_unavailable_reason == expected_api_msg
+
+    # Scenario 4: Take Profit multiple not configured
+    settings_no_tp = Settings.model_construct(
+        execution_enabled=True,
+        binance_demo_api_key=SecretStr("demo-key"),
+        binance_demo_api_secret=SecretStr("demo-secret"),
+        execution_take_profit_r_multiple=Decimal("0"),
+        risk_max_open_trades=4,
+    )
+    service = DemoExecutionService(
+        StubRisk(),  # type: ignore[arg-type]
+        settings_no_tp,
+        StubDemoClient(),
+    )
+    status = service.status()
+    assert status.execution_integration_ready is False
+    assert status.execution_unavailable_reason == "Take Profit policy is not configured."
+
+    # Scenario 5: Fully integrated and ready
+    settings_ready = Settings.model_construct(
+        execution_enabled=True,
+        binance_demo_api_key=SecretStr("demo-key"),
+        binance_demo_api_secret=SecretStr("demo-secret"),
+        execution_take_profit_r_multiple=Decimal("2.0"),
+        risk_max_open_trades=4,
+    )
+    service = DemoExecutionService(
+        StubRisk(),  # type: ignore[arg-type]
+        settings_ready,
+        StubDemoClient(),
+    )
+    status = service.status()
+    assert status.execution_integration_ready is True
+    assert status.execution_unavailable_reason is None
+
+
+def test_recovery_guarded_integration_status_fields() -> None:
+    from app.services.recovery import AutomationRecoveryGate, RecoveryGuardedExecutionService
+
+    settings_ready = _enabled_settings()
+    inner = DemoExecutionService(
+        StubRisk(),  # type: ignore[arg-type]
+        settings_ready,
+        StubDemoClient(),
+    )
+    gate = AutomationRecoveryGate()
+
+    # Recovery required but not complete (status is RECOVERY_REQUIRED)
+    guarded = RecoveryGuardedExecutionService(inner, gate, recovery_required=True)
+    status = guarded.status()
+    assert status.execution_integration_ready is False
+    assert "Startup recovery is in progress or required" in status.execution_unavailable_reason
+
+    # Recovery failed
+    gate.begin()
+    gate.fail("EXCHANGE_RECONCILIATION_FAILED")
+    status = guarded.status()
+    assert status.execution_integration_ready is False
+    expected_fail_msg = "Startup recovery failed: EXCHANGE_RECONCILIATION_FAILED"
+    assert expected_fail_msg in status.execution_unavailable_reason
+
+    # Recovery complete
+    gate.begin()
+    gate.mark_exchange_reconciled()
+    gate.mark_signals_revalidated()
+    gate.mark_ready()
+    status = guarded.status()
+    assert status.execution_integration_ready is True
+    assert status.execution_unavailable_reason is None

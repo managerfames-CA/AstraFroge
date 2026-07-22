@@ -214,6 +214,21 @@ class RecoveryGuardedExecutionService(DemoExecutionService):
     def status(self) -> DemoExecutionStatusResponse:
         status = self._inner.status()
         recovery = self._gate.snapshot()
+
+        integration_ready = status.execution_integration_ready
+        unavailable_reason = status.execution_unavailable_reason
+
+        if self._recovery_required:
+            if not recovery.automation_ready:
+                integration_ready = False
+                if recovery.recovery_error:
+                    unavailable_reason = f"Startup recovery failed: {recovery.recovery_error}"
+                else:
+                    unavailable_reason = (
+                        "Startup recovery is in progress or required "
+                        f"(state: {recovery.recovery_state.value})."
+                    )
+
         return status.model_copy(
             update={
                 "state": (
@@ -227,6 +242,8 @@ class RecoveryGuardedExecutionService(DemoExecutionService):
                 "automation_ready": recovery.automation_ready,
                 "last_recovery_at": recovery.last_recovery_at,
                 "recovery_error": recovery.recovery_error,
+                "execution_integration_ready": integration_ready,
+                "execution_unavailable_reason": unavailable_reason,
             }
         )
 
