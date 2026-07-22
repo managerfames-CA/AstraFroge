@@ -87,6 +87,8 @@ jobs:
         run: python tests/unit/test_fastapi_smoke.py
 
   container:
+    # BE-24: Confirmed CI step that builds the Docker image on every PR
+    # Runs on all pull requests and pushes as specified in the 'on' block triggers above
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
