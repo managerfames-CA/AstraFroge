@@ -27,6 +27,7 @@ from app.services.execution_leader_safety import (
     LeaderValidatedExecutionService,
     ValidatedExecutionLeaderLease,
     validate_leader_or_fail_closed,
+    ExecutionLeaderLost,
 )
 from app.services.recovery import AutomationRecoveryGate
 from tests.unit.scanner_test_support import NOW
@@ -53,9 +54,13 @@ class _FakeConnection:
         state.next_connection_id += 1
         self.closed = False
         self.invalidated = False
+        self.should_raise_on_execute = False
+        self.should_raise_on_close = False
 
     def execute(self, statement: Any, params: Any = None) -> _ScalarResult:
         del params
+        if self.should_raise_on_execute:
+            raise RuntimeError("Database execution error simulated")
         if self.closed or self.invalidated:
             raise RuntimeError("database connection lost")
         sql = str(statement)
@@ -79,6 +84,8 @@ class _FakeConnection:
         self.invalidated = True
 
     def close(self) -> None:
+        if self.should_raise_on_close:
+            raise RuntimeError("Database close error simulated")
         if self.state.owner_id == self.connection_id:
             self.state.owner_id = None
         self.closed = True
@@ -102,12 +109,34 @@ class _FakePersistence:
 
 
 class _Execution:
-    def __init__(self) -> None:
+    def __init__(self, state: DemoExecutionState = DemoExecutionState.READY) -> None:
         self.activate_calls = 0
+        self.state = state
+        self.plans_list = [
+            DemoExecutionPlan(
+                signal_id="a" * 64,
+                symbol="BTCUSDT",
+                direction=ScannerDirection.LONG,
+                setup=ScannerSetup.TREND_PULLBACK,
+                setup_name="Trend Pullback",
+                signal_lifecycle=SignalLifecycle.ACTIVE,
+                risk_decision=RiskDecision.APPROVED,
+                plan_state=DemoPlanState.EXECUTABLE,
+                grade=ScannerGrade.A,
+                score=86,
+                confidence=75,
+                entry_trigger_price=Decimal("100"),
+                stop_loss_price=Decimal("99"),
+                recommended_quantity=Decimal("1"),
+                take_profit_r_multiple=Decimal("2"),
+                executable_now=True,
+                updated_at=NOW,
+            )
+        ]
 
     def status(self) -> DemoExecutionStatusResponse:
         return DemoExecutionStatusResponse(
-            state=DemoExecutionState.READY,
+            state=self.state,
             execution_enabled=True,
             demo_credentials_configured=True,
             private_api_available=True,
@@ -121,37 +150,21 @@ class _Execution:
 
     def plans(self) -> DemoExecutionPlanList:
         return DemoExecutionPlanList(
-            count=1,
-            plans=[
-                DemoExecutionPlan(
-                    signal_id="a" * 64,
-                    symbol="BTCUSDT",
-                    direction=ScannerDirection.LONG,
-                    setup=ScannerSetup.TREND_PULLBACK,
-                    setup_name="Trend Pullback",
-                    signal_lifecycle=SignalLifecycle.ACTIVE,
-                    risk_decision=RiskDecision.APPROVED,
-                    plan_state=DemoPlanState.EXECUTABLE,
-                    grade=ScannerGrade.A,
-                    score=86,
-                    confidence=75,
-                    entry_trigger_price=Decimal("100"),
-                    stop_loss_price=Decimal("99"),
-                    recommended_quantity=Decimal("1"),
-                    take_profit_r_multiple=Decimal("2"),
-                    executable_now=True,
-                    updated_at=NOW,
-                )
-            ],
+            count=len(self.plans_list),
+            plans=self.plans_list,
         )
 
     def activate(self, signal_id: str, request: Any = None) -> Any:
         del request
         self.activate_calls += 1
+        if signal_id == "raise_generic_app_error":
+            raise AppError(status_code=400, code="GENERIC_ERROR", message="Generic error")
+        if signal_id == "raise_recovery_not_complete":
+            raise AppError(status_code=409, code="RECOVERY_NOT_COMPLETE", message="Recovery not complete")
         return SimpleNamespace(signal_id=signal_id)
 
     def trades(self) -> Any:
-        return SimpleNamespace(trades=[])
+        return SimpleNamespace(trades=["mock_trade"])
 
     def account(self) -> DemoExecutionAccountResponse:
         return DemoExecutionAccountResponse(
@@ -186,12 +199,13 @@ def _service(
     gate: AutomationRecoveryGate,
     lease: ValidatedExecutionLeaderLease,
     inner: _Execution,
+    recovery_required: bool = True,
 ) -> LeaderValidatedExecutionService:
     return LeaderValidatedExecutionService(
         cast(DemoExecutionService, inner),
         gate,
         lease,
-        recovery_required=True,
+        recovery_required=recovery_required,
     )
 
 
@@ -282,3 +296,229 @@ def test_valid_leader_and_recovery_ready_still_allow_execution() -> None:
     assert gate.snapshot().automation_ready is True
     assert lease.held is True
     lease.release()
+
+
+# --- Additional unit tests for 100% code coverage ---
+
+def test_acquire_already_has_valid_connection() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    # lease._connection is already valid, so calling acquire() should reuse it and return True
+    assert lease.acquire() is True
+
+
+def test_acquire_has_invalid_connection() -> None:
+    state = _SharedAdvisoryState()
+    lease, persistence = _lease(state)
+    # Invalidate connection
+    persistence.engine.connections[0].drop_database_session()
+    # lease._connection is set but invalid. Calling acquire() should catch ExecutionLeaderLost and call super().acquire()
+    assert lease.acquire() is True
+    assert lease._connection is not None
+
+
+def test_require_valid_unacquired() -> None:
+    state = _SharedAdvisoryState()
+    persistence = _FakePersistence(state)
+    lease = ValidatedExecutionLeaderLease(cast(Persistence, persistence))
+    # Connection is None
+    with pytest.raises(ExecutionLeaderLost) as exc:
+        lease.require_valid()
+    assert "Execution leader is not acquired" in str(exc.value)
+
+
+def test_require_valid_connection_closed() -> None:
+    state = _SharedAdvisoryState()
+    lease, persistence = _lease(state)
+    persistence.engine.connections[0].close()
+    with pytest.raises(ExecutionLeaderLost) as exc:
+        lease.require_valid()
+    assert "Execution leader database session is unavailable" in str(exc.value)
+
+
+def test_require_valid_execute_raises_exception() -> None:
+    state = _SharedAdvisoryState()
+    lease, persistence = _lease(state)
+    persistence.engine.connections[0].should_raise_on_execute = True
+    with pytest.raises(ExecutionLeaderLost) as exc:
+        lease.require_valid()
+    assert "Execution leader database session validation failed" in str(exc.value)
+
+
+def test_require_valid_not_owned() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    # Manually clear the lock owner ID in shared state so that owned becomes False
+    state.owner_id = 999
+    with pytest.raises(ExecutionLeaderLost) as exc:
+        lease.require_valid()
+    assert "Execution advisory-lock ownership was lost" in str(exc.value)
+
+
+def test_discard_lost_connection_none() -> None:
+    state = _SharedAdvisoryState()
+    persistence = _FakePersistence(state)
+    lease = ValidatedExecutionLeaderLease(cast(Persistence, persistence))
+    # _connection is None, calling discard should be safe and return None
+    assert lease._discard_lost_connection() is None
+
+
+def test_discard_lost_connection_close_raises() -> None:
+    state = _SharedAdvisoryState()
+    lease, persistence = _lease(state)
+    persistence.engine.connections[0].should_raise_on_close = True
+    # Discard should silently suppress exceptions raised during close()
+    lease._discard_lost_connection()
+    assert lease._connection is None
+
+
+def test_validate_leader_or_fail_closed_gate_not_ready() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = AutomationRecoveryGate()  # Not ready
+    assert validate_leader_or_fail_closed(gate, lease) is False
+
+
+def test_service_recovery_not_required() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = AutomationRecoveryGate()
+    inner = _Execution()
+    # service has recovery_required=False
+    service = _service(gate, lease, inner, recovery_required=False)
+    # Should bypass _require_new_entry_permission checks completely
+    result = service.activate("a" * 64)
+    assert result.signal_id == "a" * 64
+
+
+def test_service_status_validation() -> None:
+    state = _SharedAdvisoryState()
+    lease, persistence = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    service = _service(gate, lease, inner)
+
+    # Calling status when lease is valid
+    resp = service.status()
+    assert resp.state == DemoExecutionState.READY
+
+    # Lose lease, status call should fail-closed the gate but still return response
+    persistence.engine.connections[0].drop_database_session()
+    resp2 = service.status()
+    assert gate.snapshot().automation_ready is False
+
+
+def test_service_plans_validation() -> None:
+    state = _SharedAdvisoryState()
+    lease, persistence = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    service = _service(gate, lease, inner)
+
+    # Calling plans when lease is valid
+    plans = service.plans()
+    assert plans.count == 1
+
+    # Lose lease, plans call should fail-closed the gate but still return response
+    persistence.engine.connections[0].drop_database_session()
+    service.plans()
+    assert gate.snapshot().automation_ready is False
+
+
+def test_service_delegated_getattr() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    service = _service(gate, lease, inner)
+
+    # Testing delegate getattr
+    assert service.trades().trades == ["mock_trade"]
+    assert service.account().total_wallet_balance_usdt == Decimal("1000")
+
+
+def test_auto_execute_pending_not_ready_status() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution(state=DemoExecutionState.EXECUTION_LOCKED)
+    service = _service(gate, lease, inner)
+
+    # If status state is EXECUTION_LOCKED, it should return 0
+    assert service.auto_execute_pending() == 0
+
+
+def test_auto_execute_pending_plan_not_executable() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    inner.plans_list[0].plan_state = DemoPlanState.BLOCKED
+    service = _service(gate, lease, inner)
+
+    # If plans are not EXECUTABLE, return 0
+    assert service.auto_execute_pending() == 0
+
+
+def test_auto_execute_pending_activate_raises_app_error_generic() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    inner.plans_list[0].signal_id = "raise_generic_app_error"
+    service = _service(gate, lease, inner)
+
+    # Should catch the generic AppError and continue (since no other plans exist, returns 0)
+    assert service.auto_execute_pending() == 0
+
+
+def test_auto_execute_pending_activate_raises_recovery_not_complete() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    inner.plans_list[0].signal_id = "raise_recovery_not_complete"
+    service = _service(gate, lease, inner)
+
+    # Should raise the RECOVERY_NOT_COMPLETE AppError
+    with pytest.raises(AppError) as exc:
+        service.auto_execute_pending()
+    assert exc.value.code == "RECOVERY_NOT_COMPLETE"
+
+
+def test_status_and_plans_with_recovery_not_required() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    service = _service(gate, lease, inner, recovery_required=False)
+
+    # Call status and plans with recovery_required=False to cover the False branch
+    resp = service.status()
+    assert resp.state == DemoExecutionState.READY
+    plans = service.plans()
+    assert plans.count == 1
+
+
+def test_auto_execute_pending_success_activation() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    service = _service(gate, lease, inner)
+
+    # Test successful activation loop where activated is incremented
+    assert service.auto_execute_pending() == 1
+    assert inner.activate_calls == 1
+
+
+def test_getattr_fallback_raises_attribute_error() -> None:
+    state = _SharedAdvisoryState()
+    lease, _ = _lease(state)
+    gate = _ready_gate()
+    inner = _Execution()
+    service = _service(gate, lease, inner)
+
+    # Calling a non-existent attribute to trigger __getattr__ and expect AttributeError
+    with pytest.raises(AttributeError):
+        _ = service.non_existent_attribute_name_xyz
