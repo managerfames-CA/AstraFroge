@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 from types import SimpleNamespace
+from typing import Any, cast
 
 from app.schemas.journal_performance import (
     JournalEntry,
@@ -47,8 +48,8 @@ def _entry(
         trade_id=trade_id,
         signal_id=f"signal-{trade_id}",
         symbol=symbol,
-        direction=SimpleNamespace(value="LONG"),
-        setup=SimpleNamespace(value=strategy),
+        direction=cast(Any, SimpleNamespace(value="LONG")),
+        setup=cast(Any, SimpleNamespace(value=strategy)),
         setup_name=strategy_name,
         grade=None,
         entry_price=Decimal("100"),
@@ -62,7 +63,7 @@ def _entry(
         actual_costs_verified=verified,
         opened_at=closed_at,
         closed_at=closed_at,
-        closed_reason=SimpleNamespace(value="TAKE_PROFIT"),
+        closed_reason=cast(Any, SimpleNamespace(value="TAKE_PROFIT")),
         hold_minutes=0,
         source_verified=verified,
     )

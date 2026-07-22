@@ -10,6 +10,5 @@ def test_failure_and_recovery_types_remain_paired() -> None:
     }
     assert pairs[NotificationType.CONNECTION_FAILURE] is NotificationType.CONNECTION_RECOVERY
     assert (
-        pairs[NotificationType.RECONCILIATION_MISMATCH]
-        is NotificationType.RECONCILIATION_RESTORED
+        pairs[NotificationType.RECONCILIATION_MISMATCH] is NotificationType.RECONCILIATION_RESTORED
     )

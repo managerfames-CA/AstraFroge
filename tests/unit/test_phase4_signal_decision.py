@@ -6,7 +6,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -170,9 +170,7 @@ def test_a_plus_and_a_valid_setup_can_become_ready() -> None:
 
 def test_b_plus_and_pending_trigger_are_near_setup_only() -> None:
     engine = SignalDecisionEngine()
-    b_plus = engine.decide(
-        _candidate(grade=ScannerGrade.B_PLUS, score=83, confidence=75)
-    )
+    b_plus = engine.decide(_candidate(grade=ScannerGrade.B_PLUS, score=83, confidence=75))
     pending = engine.decide(_candidate(entry_ready=False))
 
     assert b_plus.decision_status is SignalDecisionStatus.NEAR_SETUP
@@ -186,9 +184,7 @@ def test_b_plus_and_pending_trigger_are_near_setup_only() -> None:
 
 def test_rejected_grade_or_blocking_reason_cannot_be_ready() -> None:
     engine = SignalDecisionEngine()
-    rejected_grade = engine.decide(
-        _candidate(grade=ScannerGrade.REJECT, score=70, confidence=75)
-    )
+    rejected_grade = engine.decide(_candidate(grade=ScannerGrade.REJECT, score=70, confidence=75))
     blocked = engine.decide(_candidate(audit_codes=["STALE_5M_DATA"]))
 
     assert rejected_grade.decision_status is SignalDecisionStatus.REJECTED
@@ -227,8 +223,8 @@ def test_strategy_reasons_are_preserved_without_blocking_valid_selected_setup() 
 def test_unchanged_decision_deduplicates_and_new_snapshot_creates_new_identity() -> None:
     candidate = _candidate()
     scanner = StubScanner([candidate])
-    service = DecisionBackedSignalService(  # type: ignore[arg-type]
-        scanner,
+    service = DecisionBackedSignalService(
+        cast(Any, scanner),
         SignalDecisionEngine(),
     )
 
@@ -265,15 +261,15 @@ def test_persistent_restart_recovers_same_decision_without_duplicate(
     repositories: TradingStateRepositories,
 ) -> None:
     scanner = StubScanner([_candidate()])
-    first_service = PersistentDecisionSignalService(  # type: ignore[arg-type]
-        scanner,
+    first_service = PersistentDecisionSignalService(
+        cast(Any, scanner),
         SignalDecisionEngine(),
         repositories,
     )
     first = first_service.signals()
 
-    restarted = PersistentDecisionSignalService(  # type: ignore[arg-type]
-        scanner,
+    restarted = PersistentDecisionSignalService(
+        cast(Any, scanner),
         SignalDecisionEngine(),
         repositories,
     ).signals()
@@ -295,8 +291,8 @@ def test_risk_receives_only_ready_and_near_setup_never_reaches_execution() -> No
         snapshot_version="e" * 64,
     )
     scanner = StubScanner([ready, near])
-    signals = DecisionBackedSignalService(  # type: ignore[arg-type]
-        scanner,
+    signals = DecisionBackedSignalService(
+        cast(Any, scanner),
         SignalDecisionEngine(),
     )
     risk = RiskService(
@@ -318,7 +314,7 @@ def test_risk_receives_only_ready_and_near_setup_never_reaches_execution() -> No
     assert watch[0].approved_for_execution is False
 
     client = NeverOrderClient()
-    execution = DemoExecutionService(risk, _settings(), client)  # type: ignore[arg-type]
+    execution = DemoExecutionService(risk, _settings(), cast(Any, client))
     assert execution.auto_execute_pending() == 0
     assert client.order_calls == 0
 

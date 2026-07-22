@@ -43,6 +43,63 @@ from app.services.scanner_base import (
 from app.services.scanner_contract import EXPIRY_LIMITS
 from app.services.scanner_scoring import ScannerEngine
 
+__all__ = [
+    "asyncio",
+    "datetime",
+    "timedelta",
+    "Decimal",
+    "MethodType",
+    "Any",
+    "pytest",
+    "IndicatorPoint",
+    "IndicatorSeries",
+    "MarketStructure",
+    "MarketCandle",
+    "MarketCandleSeries",
+    "MarketStatus",
+    "CandidateLifecycle",
+    "ScannerAuditRecord",
+    "ScannerCandidate",
+    "ScannerDirection",
+    "ScannerGrade",
+    "ScannerRunStatus",
+    "ScannerSetup",
+    "ScannerState",
+    "UniverseCandidate",
+    "UniverseSnapshot",
+    "ScannerService",
+    "EvaluationContext",
+    "Frame",
+    "ScannerEvaluationError",
+    "_candidate_key",
+    "_directional_break_margin",
+    "_directional_close_position",
+    "_directional_delta",
+    "_directional_extreme",
+    "_directional_histogram",
+    "_directional_rsi_margin",
+    "_directional_wick",
+    "_grade",
+    "_q",
+    "EXPIRY_LIMITS",
+    "ScannerEngine",
+    "NOW",
+    "candle",
+    "frame",
+    "universe",
+    "base_context",
+    "_prepare_setup",
+    "FakeClock",
+    "FakeMarket",
+    "FakeIndicators",
+    "FakeUniverse",
+    "_series",
+    "_candidate_for_service",
+    "NoTimeMarket",
+    "SkewMarket",
+    "FailingUniverse",
+]
+
 NOW = datetime(2026, 7, 16, 12, 0, tzinfo=UTC)
 
 
@@ -480,14 +537,14 @@ def _series(
     return (
         MarketCandleSeries(
             symbol="BTCUSDT",
-            interval=interval,  # type: ignore[arg-type]
+            interval=interval,
             fetched_at=NOW,
             stale=stale,
             candles=candles,
         ),
         IndicatorSeries(
             symbol="BTCUSDT",
-            interval=interval,  # type: ignore[arg-type]
+            interval=interval,
             generated_at=NOW,
             candle_count=count,
             warmup_complete=count >= 200,

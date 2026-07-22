@@ -6,7 +6,7 @@ import asyncio
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -67,7 +67,7 @@ async def test_same_closed_candle_snapshot_is_fetched_once_and_reused() -> None:
     now = [datetime(2026, 7, 18, 12, 2, tzinfo=UTC)]
     fake = MarketFake(_close_ms(now[0], 3_600_000))
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         stale_ttl_seconds=30,
         now_provider=lambda: now[0],
     )
@@ -88,13 +88,11 @@ async def test_concurrent_same_candle_snapshot_collapses_to_one_fetch() -> None:
     now = [datetime(2026, 7, 18, 12, 2, tzinfo=UTC)]
     fake = MarketFake(_close_ms(now[0], 900_000))
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: now[0],
     )
 
-    results = await asyncio.gather(
-        *(service.candles("BTCUSDT", "15m", 200) for _ in range(5))
-    )
+    results = await asyncio.gather(*(service.candles("BTCUSDT", "15m", 200) for _ in range(5)))
 
     assert len(fake.calls) == 1
     assert fake.exchange_time_calls == 1
@@ -106,7 +104,7 @@ async def test_new_closed_candle_creates_new_version_and_refreshes_once() -> Non
     now = [datetime(2026, 7, 18, 12, 2, tzinfo=UTC)]
     fake = MarketFake(_close_ms(now[0], 3_600_000))
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: now[0],
         exchange_time_ttl_seconds=0,
     )
@@ -127,7 +125,7 @@ async def test_symbols_and_timeframes_do_not_share_candle_cache() -> None:
     now = [datetime(2026, 7, 18, 12, 2, tzinfo=UTC)]
     fake = MarketFake(_close_ms(now[0], 300_000))
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: now[0],
     )
 
@@ -144,7 +142,7 @@ async def test_expired_stale_market_snapshot_does_not_hide_refresh_failure() -> 
     now = [datetime(2026, 7, 18, 12, 2, tzinfo=UTC)]
     fake = MarketFake(_close_ms(now[0], 3_600_000))
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         stale_ttl_seconds=30,
         now_provider=lambda: now[0],
         exchange_time_ttl_seconds=0,
@@ -163,7 +161,7 @@ async def test_indicator_result_calculated_once_per_exact_candle_version() -> No
     now = [datetime(2026, 7, 18, 12, 2, tzinfo=UTC)]
     fake = MarketFake(_close_ms(now[0], 3_600_000))
     market = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: now[0],
         exchange_time_ttl_seconds=0,
     )
@@ -239,7 +237,7 @@ class PrivateFake:
 def test_account_snapshot_shared_across_consumer_methods() -> None:
     fake = PrivateFake()
     service = AccountSnapshotService(fake, freshness_seconds=60)
-    proxy = SnapshotAwarePrivateClient(fake, service)
+    proxy = SnapshotAwarePrivateClient(cast(Any, fake), service)
 
     proxy.account()
     proxy.positions()

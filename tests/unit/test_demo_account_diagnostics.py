@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable
-from typing import cast
+from typing import Any, cast
 
 from app.api.v1.routes.execution import execution_account_diagnostic
 from app.core.config import Settings
@@ -34,7 +34,7 @@ class FailingDemoClient:
 
 
 def _run[T](awaitable: Awaitable[T]) -> T:
-    return asyncio.run(awaitable)
+    return cast(T, asyncio.run(cast(Any, awaitable)))
 
 
 def _configured_settings() -> Settings:

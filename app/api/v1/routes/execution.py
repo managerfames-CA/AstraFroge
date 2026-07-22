@@ -167,9 +167,7 @@ async def execution_plans(
     """Return filtered demo execution plans."""
 
     normalized_symbol = symbol.strip().upper() if symbol is not None else None
-    if normalized_symbol is not None and (
-        not normalized_symbol or not normalized_symbol.isalnum()
-    ):
+    if normalized_symbol is not None and (not normalized_symbol or not normalized_symbol.isalnum()):
         raise HTTPException(status_code=422, detail="Invalid symbol")
     plans = [
         plan

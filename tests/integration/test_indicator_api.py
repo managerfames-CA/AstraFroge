@@ -25,7 +25,7 @@ class FakeIndicatorService:
         now = datetime.now(UTC)
         return IndicatorSeries(
             symbol=symbol,
-            interval=interval,  # type: ignore[arg-type]
+            interval=interval,
             generated_at=now,
             candle_count=1,
             warmup_complete=False,

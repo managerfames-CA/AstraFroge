@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
+from typing import Any, cast
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -44,6 +45,7 @@ NOW = datetime(2026, 7, 16, 12, 0, tzinfo=UTC)
 # BE-17 TESTS: SCANNER AUTO-START AND OWNERSHIP SAFETY
 # ==============================================================================
 
+
 def test_be17_01_scanner_auto_start_defaults_to_false() -> None:
     """1. Scanner auto-start defaults to false."""
     settings = Settings(_env_file=None, environment="development")
@@ -66,7 +68,7 @@ def test_be17_03_explicit_false_configuration_works() -> None:
 def test_be17_04_invalid_boolean_configuration_fails_validation(invalid_value: str) -> None:
     """4. Invalid boolean configuration fails validation."""
     with pytest.raises(ValidationError):
-        Settings(_env_file=None, scanner_auto_start=invalid_value)  # type: ignore[arg-type]
+        Settings(_env_file=None, scanner_auto_start=invalid_value)
 
 
 def test_be17_05_auto_start_false_performs_no_lease_acquisition() -> None:
@@ -81,6 +83,7 @@ def test_be17_05_auto_start_false_performs_no_lease_acquisition() -> None:
 
 def test_be17_06_auto_start_true_without_persistence_fails_closed() -> None:
     """6. Auto-start true without persistence fails closed."""
+
     async def scenario() -> None:
         with patch("app.core.config.get_settings") as mock_get_settings:
             mock_settings = Settings(
@@ -94,12 +97,13 @@ def test_be17_06_auto_start_true_without_persistence_fails_closed() -> None:
             status = await service.start(source="lifespan")
             assert status.state is ScannerState.OFF
             assert status.blocking_code == "PERSISTENCE_UNAVAILABLE"
+
     asyncio.run(scenario())
 
 
-def test_be17_07_auto_start_true_with_non_postgresql_persistence_does_not_claim_safe_ownership(
-) -> None:
+def test_be17_07_autostart_non_postgres_no_safe_ownership() -> None:
     """7. Auto-start true with non-PostgreSQL persistence does not claim safe ownership."""
+
     async def scenario() -> None:
         with patch("app.core.config.get_settings") as mock_get_settings:
             mock_settings = Settings(
@@ -121,11 +125,13 @@ def test_be17_07_auto_start_true_with_non_postgresql_persistence_does_not_claim_
             assert status.state is ScannerState.OFF
             assert status.blocking_code == "PERSISTENCE_UNAVAILABLE"
             assert status.is_owner is False
+
     asyncio.run(scenario())
 
 
 def test_be17_08_first_postgresql_backed_instance_acquires_ownership() -> None:
     """8. First PostgreSQL-backed instance acquires ownership."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -148,11 +154,13 @@ def test_be17_08_first_postgresql_backed_instance_acquires_ownership() -> None:
         assert status.is_owner is True
         assert status.blocking_code is None
         await service.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_09_second_instance_cannot_start_a_duplicate_recurring_scheduler() -> None:
     """9. Second instance cannot start a duplicate recurring scheduler."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -175,11 +183,13 @@ def test_be17_09_second_instance_cannot_start_a_duplicate_recurring_scheduler() 
         assert status.is_owner is False
         assert status.blocking_code == "OWNERSHIP_ACQUISITION_FAILED"
         await service.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_10_repeated_start_is_idempotent() -> None:
     """10. Repeated start is idempotent."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -207,11 +217,13 @@ def test_be17_10_repeated_start_is_idempotent() -> None:
         assert status_2.state is ScannerState.ON
         assert task_1 is task_2
         await service.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_11_shutdown_releases_ownership() -> None:
     """11. Shutdown releases ownership."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -235,11 +247,13 @@ def test_be17_11_shutdown_releases_ownership() -> None:
 
         mock_lease.release.assert_called_once()
         assert service.status().state is ScannerState.OFF
+
     asyncio.run(scenario())
 
 
 def test_be17_12_new_instance_can_acquire_ownership_after_clean_release() -> None:
     """12. A new instance can acquire ownership after clean release."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -271,11 +285,13 @@ def test_be17_12_new_instance_can_acquire_ownership_after_clean_release() -> Non
         await service_2.start()
         assert service_2.status().is_owner is True
         await service_2.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_13_lost_database_session_stops_future_scheduling() -> None:
     """13. Lost database session or advisory lock stops future scheduling."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -307,15 +323,15 @@ def test_be17_13_lost_database_session_stops_future_scheduling() -> None:
         assert status.state is ScannerState.OFF
         assert status.blocking_code == "SCANNER_SCHEDULER_LEADER_LOST"
         await service.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_14_manual_run_now_does_not_create_scheduler() -> None:
     """14. Manual run-now does not create a scheduler."""
+
     async def scenario() -> None:
-        service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-        )
+        service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
 
         async def dummy_scan() -> ScannerRunSummary:
             return ScannerRunSummary(
@@ -324,16 +340,19 @@ def test_be17_14_manual_run_now_does_not_create_scheduler() -> None:
                 status=ScannerRunStatus.COMPLETED,
                 run_started_at=NOW,
             )
+
         service.full_scan = dummy_scan  # type: ignore[method-assign]
 
         run = await service.run_now()
         assert run.run_id == "run-dummy"
         assert service.status().scheduler_running is False
+
     asyncio.run(scenario())
 
 
 def test_be17_15_manual_recurring_start_cannot_bypass_ownership() -> None:
     """15. Manual recurring start cannot bypass ownership requirements."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -355,11 +374,13 @@ def test_be17_15_manual_recurring_start_cannot_bypass_ownership() -> None:
         assert status.state is ScannerState.OFF
         assert status.blocking_code == "OWNERSHIP_ACQUISITION_FAILED"
         await service.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_16_status_exposes_correct_ownership_and_blocking_state() -> None:
     """16. Status exposes correct ownership and blocking state."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock(spec=Persistence)
         mock_persistence.engine = MagicMock()
@@ -384,18 +405,19 @@ def test_be17_16_status_exposes_correct_ownership_and_blocking_state() -> None:
         assert status.is_owner is False
         assert status.blocking_code == "OWNERSHIP_ACQUISITION_FAILED"
         await service.stop()
+
     asyncio.run(scenario())
 
 
 def test_be17_17_partial_lifespan_startup_cleanup_works() -> None:
     """17. Partial lifespan startup cleanup works."""
+
     async def scenario() -> None:
-        service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-        )
+        service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
         assert service.status().state is ScannerState.OFF
         status = await service.stop()
         assert status.state is ScannerState.OFF
+
     asyncio.run(scenario())
 
 
@@ -403,11 +425,10 @@ def test_be17_17_partial_lifespan_startup_cleanup_works() -> None:
 # BE-18 TESTS: SCANNER LATEST-RUN AND DEGRADED CONTRACT
 # ==============================================================================
 
+
 def test_be18_18_no_latest_run_is_represented_truthfully() -> None:
     """18. No latest run is represented truthfully."""
-    service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-    )
+    service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
     assert service.latest_run() is None
 
 
@@ -448,9 +469,7 @@ def test_be18_21_degraded_latest_run_response() -> None:
         status=ScannerRunStatus.DEGRADED,
         run_started_at=NOW,
         completed_at=NOW,
-        audits=[
-            ScannerAuditRecord(code="MISSING_5M_CANDLES", detail="Degraded scan completeness")
-        ],
+        audits=[ScannerAuditRecord(code="MISSING_5M_CANDLES", detail="Degraded scan completeness")],
         failed_symbols=1,
     )
     assert run.status is ScannerRunStatus.DEGRADED
@@ -503,7 +522,7 @@ def test_be18_24_symbol_level_technical_failures_create_degraded_status() -> Non
         successful_symbols=10,
         audits=[
             ScannerAuditRecord(code="MISSING_15M_CANDLES", detail="Symbol ETH failed technically")
-        ]
+        ],
     )
     assert run.status is ScannerRunStatus.DEGRADED
     assert run.results_usable is True
@@ -537,8 +556,8 @@ def test_be18_26_normal_rejections_do_not_create_false_degraded_status() -> None
         completed_at=NOW,
         audits=[
             ScannerAuditRecord(code="SETUP_NOT_DETECTED", detail="No setup found"),
-            ScannerAuditRecord(code="SCORE_BELOW_80", detail="Low score")
-        ]
+            ScannerAuditRecord(code="SCORE_BELOW_80", detail="Low score"),
+        ],
     )
     assert run.status is ScannerRunStatus.COMPLETED
     assert run.degraded_state is False
@@ -605,6 +624,7 @@ def test_be18_29_openapi_publishes_required_scanner_schemas() -> None:
 # ADDITIONAL COVERAGE BOOST TESTS FOR SCANNER RUNTIME AND LEASE
 # ==============================================================================
 
+
 def test_be17_lease_none_persistence_edge_cases() -> None:
     """Cover ScannerSchedulerLease edge cases with None persistence."""
     lease = ScannerSchedulerLease(None)
@@ -641,7 +661,7 @@ def test_be17_lease_validation_exceptions_and_not_owned() -> None:
     mock_conn.execute.side_effect = RuntimeError("DB Query Error")
     with pytest.raises(ScannerSchedulerLost, match="validation failed"):
         lease.validate_current_ownership()
-    assert lease._connection is None
+    assert cast(Any, lease)._connection is None
 
     # 2. Query returns False (not owned)
     lease._connection = mock_conn
@@ -666,9 +686,7 @@ def test_be17_runtime_is_postgresql_authoritative_exceptions() -> None:
 
 def test_be17_risk_stop_price_exceptions_and_edge_cases() -> None:
     """Cover exceptions and edge cases inside risk_stop_price."""
-    service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-    )
+    service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
     # Unknown candidate
     assert service.risk_stop_price("unknown") is None
 
@@ -698,9 +716,7 @@ def test_be17_risk_stop_price_exceptions_and_edge_cases() -> None:
 
 def test_be17_risk_stop_price_additional_coverage() -> None:
     """Cover SHORT direction and other setup branches inside risk_stop_price."""
-    service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-    )
+    service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
 
     # Mock candidate context
     ctx = MagicMock()
@@ -784,9 +800,7 @@ def test_be17_risk_stop_price_additional_coverage() -> None:
 
 def test_be17_risk_stop_price_full_coverage() -> None:
     """Cover remaining setup branches (TREND_PULLBACK, BREAKOUT_RETEST) LONG & SHORT."""
-    service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-    )
+    service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
 
     ctx = MagicMock()
     ctx.s = [MagicMock()]
@@ -891,9 +905,7 @@ def test_be17_risk_stop_price_full_coverage() -> None:
 
 def test_be17_evidence_decimal_value_error() -> None:
     """Directly test _evidence_decimal value error to force coverage."""
-    service = ScannerService(
-        FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()
-    )
+    service = ScannerService(FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock())
     cand_err = ScannerCandidate(
         candidate_id="c1",
         symbol="BTCUSDT",
@@ -963,6 +975,7 @@ def test_be17_lease_acquire_returns_false() -> None:
 
 def test_be17_start_validation_fails() -> None:
     """Cover exception path of validate_current_ownership inside start()."""
+
     async def scenario() -> None:
         mock_persistence = MagicMock()
         mock_persistence.engine.dialect.name = "postgresql"
@@ -981,6 +994,7 @@ def test_be17_start_validation_fails() -> None:
         status = await service.start()
         assert status.state is ScannerState.OFF
         assert status.blocking_code == "OWNERSHIP_VALIDATION_FAILED"
+
     asyncio.run(scenario())
 
 
@@ -1028,7 +1042,7 @@ def test_be17_multi_instance_competing_advisory_lock() -> None:
         conn.closed = False
         conn.invalidated = False
 
-        def execute_query(query, params=None):
+        def execute_query(query: Any, params: Any = None) -> Any:
             sql_text = str(query)
             if "pg_try_advisory_lock" in sql_text:
                 lock_key = params["lock_key"] if params else 0
@@ -1064,30 +1078,30 @@ def test_be17_multi_instance_competing_advisory_lock() -> None:
     persistence_a.engine.dialect.name = "postgresql"
     conn_a = make_mock_connection("instance_a")
     persistence_a.engine.connect.return_value = conn_a
-    lease_a = ScannerSchedulerLease(persistence_a)
+    lease_a: Any = ScannerSchedulerLease(persistence_a)
 
     # Instance B
     persistence_b = MagicMock()
     persistence_b.engine.dialect.name = "postgresql"
     conn_b = make_mock_connection("instance_b")
     persistence_b.engine.connect.return_value = conn_b
-    lease_b = ScannerSchedulerLease(persistence_b)
+    lease_b: Any = ScannerSchedulerLease(persistence_b)
 
     # 1. Instance A acquires ownership successfully
     assert lease_a.acquire() is True
-    assert lease_a.held is True
+    assert getattr(lease_a, "held") is True
 
     # 2. Instance B attempts to acquire ownership but gets rejected
     assert lease_b.acquire() is False
-    assert lease_b.held is False
+    assert getattr(lease_b, "held") is False
 
     # 3. Instance A releases lock cleanly
     lease_a.release()
-    assert lease_a.held is False
+    assert getattr(lease_a, "held") is False
 
     # 4. Instance B can now acquire ownership cleanly
     assert lease_b.acquire() is True
-    assert lease_b.held is True
+    assert getattr(lease_b, "held") is True
     lease_b.release()
 
 

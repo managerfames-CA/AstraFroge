@@ -252,8 +252,8 @@ class _ScannerStub:
 
 def test_decision_signal_get_risk_block_and_missing_paths() -> None:
     scanner = _ScannerStub([_candidate()])
-    service = DecisionBackedSignalService(  # type: ignore[arg-type]
-        scanner,
+    service = DecisionBackedSignalService(
+        cast(Any, scanner),
         SignalDecisionEngine(),
     )
     record = service.signals().signals[0]
@@ -274,8 +274,8 @@ def test_decision_signal_get_risk_block_and_missing_paths() -> None:
 def test_decision_signal_updates_same_key_and_prunes_terminal_records() -> None:
     first = _candidate(symbol="BTCUSDT", candidate_id="a" * 64)
     scanner = _ScannerStub([first])
-    service = DecisionBackedSignalService(  # type: ignore[arg-type]
-        scanner,
+    service = DecisionBackedSignalService(
+        cast(Any, scanner),
         SignalDecisionEngine(),
         record_limit=1,
     )
@@ -379,8 +379,9 @@ async def test_fact_only_scanner_evaluate_symbol_preserves_failures_and_selects_
         "Breakout is pending",
         "15m",
     )
-    service._strategy_evaluation = _EvaluationFake(
-        StrategyEvaluationResult(matches=(), failures=(failure,))
+    service._strategy_evaluation = cast(
+        Any,
+        _EvaluationFake(StrategyEvaluationResult(matches=(), failures=(failure,))),
     )
     universe = cast(Any, SimpleNamespace(symbol="BTCUSDT"))
 
@@ -404,8 +405,9 @@ async def test_fact_only_scanner_evaluate_symbol_preserves_failures_and_selects_
         score=87,
         confidence=75,
     )
-    service._strategy_evaluation = _EvaluationFake(
-        StrategyEvaluationResult(matches=(match, match), failures=(failure,))
+    service._strategy_evaluation = cast(
+        Any,
+        _EvaluationFake(StrategyEvaluationResult(matches=(match, match), failures=(failure,))),
     )
     generated = iter([low, high])
     service._candidate_from_match = (  # type: ignore[method-assign]
@@ -505,9 +507,7 @@ async def test_fact_only_scanner_active_refresh_normalizes_legacy_states(
         candidate_id="x" * 64,
         lifecycle=CandidateLifecycle.EXPIRED,
     )
-    service._candidates = {
-        item.candidate_id: item for item in (qualified, watch, terminal)
-    }
+    service._candidates = {item.candidate_id: item for item in (qualified, watch, terminal)}
     service._refresh_provenance = {
         "BTCUSDT": {
             "source_snapshot_version": "z" * 64,
@@ -530,8 +530,8 @@ async def test_fact_only_scanner_active_refresh_normalizes_legacy_states(
     result = await service.active_refresh()
 
     assert result.qualified_candidates == 0
-    assert qualified.lifecycle is CandidateLifecycle.DETECTED
-    assert watch.lifecycle is CandidateLifecycle.DETECTED
-    assert terminal.lifecycle is CandidateLifecycle.EXPIRED
-    assert qualified.qualification_expires_at is None
-    assert qualified.evidence["source_snapshot_version"] == "z" * 64
+    assert cast(Any, qualified).lifecycle is CandidateLifecycle.DETECTED
+    assert cast(Any, watch).lifecycle is CandidateLifecycle.DETECTED
+    assert cast(Any, terminal).lifecycle is CandidateLifecycle.EXPIRED
+    assert cast(Any, qualified).qualification_expires_at is None
+    assert cast(Any, qualified).evidence["source_snapshot_version"] == "z" * 64

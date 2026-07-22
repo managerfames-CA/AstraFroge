@@ -509,6 +509,7 @@ def test_recovery_guarded_integration_status_fields() -> None:
     guarded = RecoveryGuardedExecutionService(inner, gate, recovery_required=True)
     status = guarded.status()
     assert status.execution_integration_ready is False
+    assert status.execution_unavailable_reason is not None
     assert "Startup recovery is in progress or required" in status.execution_unavailable_reason
 
     # Recovery failed
@@ -517,6 +518,7 @@ def test_recovery_guarded_integration_status_fields() -> None:
     status = guarded.status()
     assert status.execution_integration_ready is False
     expected_fail_msg = "Startup recovery failed: EXCHANGE_RECONCILIATION_FAILED"
+    assert status.execution_unavailable_reason is not None
     assert expected_fail_msg in status.execution_unavailable_reason
 
     # Recovery complete

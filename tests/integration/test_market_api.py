@@ -8,7 +8,7 @@ from decimal import Decimal
 import httpx
 import pytest
 
-from app.api.v1.routes.market import get_market_service
+from app.api.v1.dependencies import get_market_service
 from app.core.config import Settings
 from app.integrations.binance.public_client import BinancePublicClientError
 from app.main import create_app

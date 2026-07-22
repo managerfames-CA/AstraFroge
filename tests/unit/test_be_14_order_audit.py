@@ -214,7 +214,7 @@ def _service(
     return service, resolved_client, repositories, gate
 
 
-def _record(service: OrderAuditService, role: OrderAuditRole):
+def _record(service: OrderAuditService, role: OrderAuditRole) -> Any:
     return next(item for item in service.records().records if item.role is role)
 
 
@@ -264,9 +264,7 @@ def test_protective_partial_then_terminal_progression_is_idempotent(
     assert stop.average_fill_price == Decimal("99")
     assert stop.final_status == "PARTIALLY_FILLED"
 
-    client.stop.update(
-        {"status": "FINISHED", "executedQty": "0.1", "avgPrice": "98.4"}
-    )
+    client.stop.update({"status": "FINISHED", "executedQty": "0.1", "avgPrice": "98.4"})
     client.fills.append(_fill("stop-actual-1", "stop-fill-2", "0.06", "98", "SELL"))
 
     terminal = service.reconcile()
@@ -302,9 +300,7 @@ def test_regression_fails_closed_without_overwrite(tmp_path: Path) -> None:
     stop = _record(service, OrderAuditRole.STOP_LOSS)
 
     assert blocked.state is OrderAuditState.BLOCKED
-    assert {item.code for item in blocked.findings} == {
-        "ORDER_AUDIT_EXECUTED_QUANTITY_REGRESSION"
-    }
+    assert {item.code for item in blocked.findings} == {"ORDER_AUDIT_EXECUTED_QUANTITY_REGRESSION"}
     assert gate.snapshot().automation_ready is False
     assert stop.executed_quantity == Decimal("0.04")
     assert stop.final_status == "PARTIALLY_FILLED"
@@ -370,9 +366,7 @@ def test_missing_fill_and_unavailable_source_fail_closed(tmp_path: Path) -> None
     missing = service.reconcile()
 
     assert missing.state is OrderAuditState.BLOCKED
-    assert {item.code for item in missing.findings} == {
-        "ORDER_AUDIT_EXECUTED_QUANTITY_MISMATCH"
-    }
+    assert {item.code for item in missing.findings} == {"ORDER_AUDIT_EXECUTED_QUANTITY_MISMATCH"}
 
     repositories = _repositories(tmp_path / "unavailable")
     gate = _gate()

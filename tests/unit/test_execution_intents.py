@@ -170,9 +170,7 @@ def test_close_final_persistence_failure_leaves_recovery_intent(
     close_client = StubCloseClient(
         exit_price="105",
         close_quantity="0.107",
-        income_payload=[
-            {"symbol": opened.symbol, "incomeType": "REALIZED_PNL", "income": "0.535"}
-        ],
+        income_payload=[{"symbol": opened.symbol, "incomeType": "REALIZED_PNL", "income": "0.535"}],
     )
     management = TradeManagementService(execution, close_client)
 

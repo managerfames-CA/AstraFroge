@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -144,9 +145,7 @@ def test_signal_identity_is_independent_stable_and_duplicate_safe() -> None:
     assert record.created_at == NOW
     assert record.updated_at == NOW
     assert record.source_run_id == "scanner-run-1"
-    assert [item.lifecycle for item in record.lifecycle_history] == [
-        SignalLifecycle.ACTIVE
-    ]
+    assert [item.lifecycle for item in record.lifecycle_history] == [SignalLifecycle.ACTIVE]
 
 
 def test_non_lifecycle_update_increments_version_once_without_history_entry() -> None:
@@ -333,7 +332,7 @@ def test_signal_retention_prunes_terminal_then_watch_before_active() -> None:
 
 
 def test_expanded_signal_record_remains_risk_and_execution_compatible(
-    settings,  # type: ignore[no-untyped-def]
+    settings: Any,
 ) -> None:
     scanner = StubScanner([_candidate()])
     signal_service = _service(scanner)
@@ -351,7 +350,7 @@ def test_expanded_signal_record_remains_risk_and_execution_compatible(
 
 
 def test_signal_status_and_detail_api(
-    settings,  # type: ignore[no-untyped-def]
+    settings: Any,
 ) -> None:
     scanner = StubScanner([_candidate()])
     service = _service(scanner)

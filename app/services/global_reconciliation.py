@@ -83,11 +83,7 @@ class GlobalReconciliationSafetyService:
         while True:
             if self._gate.snapshot().automation_ready:
                 report = await asyncio.to_thread(self.reconcile)
-                if (
-                    report.blocking
-                    and self._protective is None
-                    and self._order_audit is None
-                ):
+                if report.blocking and self._protective is None and self._order_audit is None:
                     return
             else:
                 observers = 0
@@ -131,9 +127,7 @@ class GlobalReconciliationSafetyService:
 
         if protective_report is not None and protective_report.blocking:
             error_codes.append("PROTECTIVE_LIFECYCLE_NOT_SAFE")
-            error_codes.extend(
-                item.code for item in protective_report.findings if item.blocking
-            )
+            error_codes.extend(item.code for item in protective_report.findings if item.blocking)
 
         if order_report.state is not OrderReconciliationState.IN_SYNC:
             error_codes.append("ORDER_RECONCILIATION_NOT_SAFE")
@@ -159,18 +153,14 @@ class GlobalReconciliationSafetyService:
         blocking = bool(normalized_errors)
         report = GlobalReconciliationReport(
             state=(
-                GlobalReconciliationState.BLOCKED
-                if blocking
-                else GlobalReconciliationState.SAFE
+                GlobalReconciliationState.BLOCKED if blocking else GlobalReconciliationState.SAFE
             ),
             checked_at=checked_at,
             order_state=order_report.state,
             position_state=position_report.state,
             lifecycle_state=lifecycle_report.state,
             restart_state=restart_report.state,
-            automation_ready=(
-                self._gate.snapshot().automation_ready and not blocking
-            ),
+            automation_ready=(self._gate.snapshot().automation_ready and not blocking),
             blocking=blocking,
             error_count=len(normalized_errors),
             error_codes=normalized_errors,

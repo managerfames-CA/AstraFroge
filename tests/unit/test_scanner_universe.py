@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from typing import Any, cast
 
 import pytest
 
@@ -53,9 +54,7 @@ class StubDirectionalUniverse(DirectionalScannerUniverse):
 async def test_prefilter_accepts_directional_1h_regime() -> None:
     item = universe()
     service = DirectionalScannerUniverse(FakeBroadUniverse([item]), FakeMarket())
-    service._scanner_engine.regime = (  # type: ignore[assignment]
-        lambda frames, structure: ScannerDirection.LONG
-    )
+    cast(Any, service._scanner_engine).regime = lambda frames, structure: ScannerDirection.LONG
 
     accepted, rejection = await service._classify_candidate(item, NOW)
 

@@ -191,9 +191,7 @@ class DecisionBackedSignalService(SignalService):
     ) -> dict[str, Any]:
         source_run_id = candidate.evidence.get("source_run_id")
         stop_provider = getattr(self._scanner, "risk_stop_price", None)
-        stop_loss_price = (
-            stop_provider(candidate.candidate_id) if callable(stop_provider) else None
-        )
+        stop_loss_price = stop_provider(candidate.candidate_id) if callable(stop_provider) else None
         audit_codes = list(
             dict.fromkeys(
                 [

@@ -42,6 +42,8 @@ from app.services.scanner_strategy_separated import (
     StrategySeparatedScannerService as ScannerService,
 )
 from app.services.scanner_universe import DirectionalScannerUniverse
+
+__all__ = ["ScannerService"]
 from app.services.shared_snapshots import (
     SharedClosedCandleMarketDataService,
     SharedIndicatorService,

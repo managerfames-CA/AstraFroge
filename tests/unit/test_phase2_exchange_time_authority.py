@@ -74,7 +74,7 @@ async def test_local_clock_ahead_never_promotes_exchange_open_candle() -> None:
     )
     local_ahead = datetime(2026, 7, 18, 12, 20, tzinfo=UTC)
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: local_ahead,
     )
 
@@ -99,7 +99,7 @@ async def test_local_clock_behind_still_recognizes_exchange_closed_candle() -> N
     )
     local_behind = datetime(2026, 7, 18, 11, 45, tzinfo=UTC)
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: local_behind,
     )
 
@@ -119,7 +119,7 @@ async def test_exact_exchange_interval_boundary_accepts_only_fully_closed_candle
         server_time_ms=server_time_ms,
         rows=[_row(fully_closed_ms, "5m", 100), _row(next_open_ms, "5m", 110)],
     )
-    service = SharedClosedCandleMarketDataService(fake)  # type: ignore[arg-type]
+    service = SharedClosedCandleMarketDataService(fake)
 
     snapshot = await service.candles("BTCUSDT", "5m", 2)
 
@@ -136,11 +136,9 @@ async def test_concurrent_requests_bound_exchange_time_and_kline_fetches() -> No
         server_time_ms=server_time_ms,
         rows=[_row(closed_ms, "5m", 100)],
     )
-    service = SharedClosedCandleMarketDataService(fake)  # type: ignore[arg-type]
+    service = SharedClosedCandleMarketDataService(fake)
 
-    snapshots = await asyncio.gather(
-        *(service.candles("BTCUSDT", "5m", 1) for _ in range(5))
-    )
+    snapshots = await asyncio.gather(*(service.candles("BTCUSDT", "5m", 1) for _ in range(5)))
 
     assert fake.exchange_time_calls == 1
     assert fake.kline_calls == 1
@@ -160,7 +158,7 @@ async def test_new_exchange_confirmed_candle_advances_snapshot_once() -> None:
         rows=[_row(first_closed_ms, "5m", 100)],
     )
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         monotonic_provider=lambda: ticks[0],
         exchange_time_ttl_seconds=1,
     )
@@ -170,9 +168,7 @@ async def test_new_exchange_confirmed_candle_advances_snapshot_once() -> None:
     fake.server_time_ms += _INTERVAL_MS["5m"]
     second_closed_ms = _last_closed_ms(fake.server_time_ms, "5m")
     fake.rows = [_row(second_closed_ms, "5m", 110)]
-    refreshed = await asyncio.gather(
-        *(service.candles("BTCUSDT", "5m", 1) for _ in range(3))
-    )
+    refreshed = await asyncio.gather(*(service.candles("BTCUSDT", "5m", 1) for _ in range(3)))
 
     assert fake.exchange_time_calls == 2
     assert fake.kline_calls == 2
@@ -194,7 +190,7 @@ async def test_indicator_uses_only_exchange_confirmed_candle_version() -> None:
             _row(open_ms, "5m", 120),
         ],
     )
-    market = SharedClosedCandleMarketDataService(fake)  # type: ignore[arg-type]
+    market = SharedClosedCandleMarketDataService(fake)
     indicators = SharedIndicatorService(market)
 
     candle_snapshot = await market.candles("BTCUSDT", "5m", 2)
@@ -216,7 +212,7 @@ async def test_exchange_time_failure_never_promotes_new_version() -> None:
         rows=[_row(first_closed_ms, "5m", 100)],
     )
     service = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         now_provider=lambda: local_now,
         monotonic_provider=lambda: ticks[0],
         exchange_time_ttl_seconds=1,
@@ -235,7 +231,7 @@ async def test_exchange_time_failure_never_promotes_new_version() -> None:
     assert fake.kline_calls == 1
 
     no_cache = SharedClosedCandleMarketDataService(
-        fake,  # type: ignore[arg-type]
+        fake,
         exchange_time_ttl_seconds=0,
     )
     with pytest.raises(BinancePublicClientError):

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from tests.unit.scanner_test_support import (
     NOW,
     Any,
@@ -45,9 +47,12 @@ from tests.unit.scanner_test_support import (
 def test_scanner_state_run_now_duplicate_and_stop() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
-    
+
         async def evaluate(
             self: ScannerService,
             item: UniverseCandidate,
@@ -87,7 +92,7 @@ def test_scanner_state_run_now_duplicate_and_stop() -> None:
                 score_components=components,
             )
             return candidate, [], ctx
-    
+
         service._evaluate_symbol = MethodType(evaluate, service)  # type: ignore[method-assign]
         assert service.status().state is ScannerState.OFF
         first = await service.run_now()
@@ -98,12 +103,17 @@ def test_scanner_state_run_now_duplicate_and_stop() -> None:
         assert status.state is ScannerState.ON
         stopped = await service.stop()
         assert stopped.state is ScannerState.OFF
+
     asyncio.run(scenario())
+
 
 def test_shared_lock_skips_overlap() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         await service._lock.acquire()
         try:
@@ -112,7 +122,9 @@ def test_shared_lock_skips_overlap() -> None:
             service._lock.release()
         assert run.status is ScannerRunStatus.SKIPPED
         assert run.audits[0].code == "SCAN_ALREADY_RUNNING"
+
     asyncio.run(scenario())
+
 
 def test_align_integrity_freshness_and_failures() -> None:
     engine = ScannerEngine()
@@ -141,12 +153,11 @@ def test_align_integrity_freshness_and_failures() -> None:
     assert broken.value.code in {"MISSING_1H_CANDLES", "INVALID_1H_OHLCV"}
 
     missing_candles, missing_indicators = _series("15m")
-    missing_indicators.points[-1] = missing_indicators.points[-1].model_copy(
-        update={"atr14": None}
-    )
+    missing_indicators.points[-1] = missing_indicators.points[-1].model_copy(update={"atr14": None})
     with pytest.raises(ScannerEvaluationError) as missing:
         engine.align(missing_candles, missing_indicators, exchange_time=NOW)
     assert missing.value.code == "MISSING_REQUIRED_INDICATOR"
+
 
 def test_volatility_and_mixed_regime_fail_closed() -> None:
     engine = ScannerEngine()
@@ -161,44 +172,73 @@ def test_volatility_and_mixed_regime_fail_closed() -> None:
 
     mixed = base_context(ScannerDirection.LONG).h
     mixed[0] = frame(
-        "100", ema20="99", ema50="98", ema200="97", rsi="60",
-        macd="1", signal="0", histogram="0.2", interval_minutes=60
+        "100",
+        ema20="99",
+        ema50="98",
+        ema200="97",
+        rsi="60",
+        macd="1",
+        signal="0",
+        histogram="0.2",
+        interval_minutes=60,
     )
     mixed[3] = frame(
-        "100", ema20="100", ema50="98", ema200="97", rsi="60",
-        macd="1", signal="0", histogram="0.2", interval_minutes=60, minutes_ago=180
+        "100",
+        ema20="100",
+        ema50="98",
+        ema200="97",
+        rsi="60",
+        macd="1",
+        signal="0",
+        histogram="0.2",
+        interval_minutes=60,
+        minutes_ago=180,
     )
     with pytest.raises(ScannerEvaluationError) as exc:
         engine.regime(mixed, "bullish")
     assert exc.value.code == "TREND_MIXED"
 
+
 def test_full_scan_market_and_universe_failures() -> None:
     async def scenario() -> None:
         no_time = ScannerService(
-            NoTimeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            NoTimeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         run = await no_time.run_now()
         assert run.status is ScannerRunStatus.FAILED
         assert run.audits[0].code == "MARKET_TIME_UNAVAILABLE"
 
         skew = ScannerService(
-            SkewMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            SkewMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         run = await skew.run_now()
         assert run.audits[0].code == "CLOCK_SKEW_EXCEEDED"
 
         unavailable = ScannerService(
-            FakeMarket(), FailingUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FailingUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         run = await unavailable.run_now()
         assert run.audits[0].code == "UNIVERSE_UNAVAILABLE"
 
     asyncio.run(scenario())
 
+
 def test_full_scan_partial_and_total_symbol_failure() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
 
         async def fail(
@@ -225,7 +265,10 @@ def test_full_scan_partial_and_total_symbol_failure() -> None:
                 )
 
         service = ScannerService(
-            FakeMarket(), TwoUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            TwoUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         good = _candidate_for_service()
 
@@ -237,9 +280,13 @@ def test_full_scan_partial_and_total_symbol_failure() -> None:
         ) -> tuple[Any, list[ScannerAuditRecord], EvaluationContext]:
             if item.symbol == "ETHUSDT":
                 raise ScannerEvaluationError("MISSING_5M_CANDLES", "none", "5m")
-            return good.model_copy(update={"symbol": item.symbol}), [], _prepare_setup(
-                ScannerDirection.LONG,
-                ScannerSetup.TREND_PULLBACK,
+            return (
+                good.model_copy(update={"symbol": item.symbol}),
+                [],
+                _prepare_setup(
+                    ScannerDirection.LONG,
+                    ScannerSetup.TREND_PULLBACK,
+                ),
             )
 
         service._evaluate_symbol = MethodType(partial, service)  # type: ignore[method-assign]
@@ -249,10 +296,14 @@ def test_full_scan_partial_and_total_symbol_failure() -> None:
 
     asyncio.run(scenario())
 
+
 def test_full_scan_valid_no_setup_is_completed_rejection() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
 
         async def reject(
@@ -285,10 +336,14 @@ def test_full_scan_valid_no_setup_is_completed_rejection() -> None:
 
     asyncio.run(scenario())
 
+
 def test_active_refresh_expiry_invalidation_and_no_downgrade() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         expired = _candidate_for_service(expires_at=NOW)
         service._candidates[expired.candidate_id] = expired
@@ -311,6 +366,7 @@ def test_active_refresh_expiry_invalidation_and_no_downgrade() -> None:
         assert invalid.lifecycle is CandidateLifecycle.INVALIDATED
 
     asyncio.run(scenario())
+
 
 def test_setup_dispatch_and_invalidation_rules() -> None:
     engine = ScannerEngine()
@@ -352,6 +408,7 @@ def test_setup_dispatch_and_invalidation_rules() -> None:
     harmless = base.model_copy(update={"setup": ScannerSetup.BREAKOUT_RETEST, "level": None})
     assert not engine.invalidated(harmless, frame("100"), frame("100", interval_minutes=5))
 
+
 @pytest.mark.parametrize(
     ("score_result", "entry_ready", "expected", "expected_code"),
     [
@@ -375,11 +432,15 @@ def test_evaluate_symbol_lifecycle_boundaries(
 ) -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         ctx = _prepare_setup(ScannerDirection.LONG, ScannerSetup.TREND_PULLBACK)
         match = service._engine._trend_pullback(ctx)
         from dataclasses import replace
+
         match = replace(match, setup_confirmed_at=NOW - timedelta(minutes=15))
 
         async def load(
@@ -388,19 +449,13 @@ def test_evaluate_symbol_lifecycle_boundaries(
             return ctx
 
         service._load_context = MethodType(load, service)  # type: ignore[method-assign]
-        service._engine.evaluate_setups = (  # type: ignore[method-assign]
-            lambda loaded: ([match], [])
-        )
-        service._engine.shared_entry = (  # type: ignore[method-assign]
-            lambda e, direction, trigger: entry_ready
-        )
-        service._engine.score = (  # type: ignore[method-assign]
-            lambda loaded, accepted, ready: (
-                score_result[0],
-                score_result[1],
-                score_result[2],
-                {"trend": Decimal("1")},
-            )
+        cast(Any, service._engine).evaluate_setups = lambda loaded: ([match], [])
+        cast(Any, service._engine).shared_entry = lambda e, direction, trigger: entry_ready
+        cast(Any, service._engine).score = lambda loaded, accepted, ready: (
+            score_result[0],
+            score_result[1],
+            score_result[2],
+            {"trend": Decimal("1")},
         )
         candidate, audits, _ = await service._evaluate_symbol(universe(), NOW, "run-1")
         assert candidate is not None
@@ -413,10 +468,14 @@ def test_evaluate_symbol_lifecycle_boundaries(
 
     asyncio.run(scenario())
 
+
 def test_evaluate_symbol_superseded_and_no_setup() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         ctx = _prepare_setup(ScannerDirection.LONG, ScannerSetup.TREND_PULLBACK)
         first = service._engine._trend_pullback(ctx)
@@ -439,53 +498,49 @@ def test_evaluate_symbol_superseded_and_no_setup() -> None:
             return ctx
 
         service._load_context = MethodType(load, service)  # type: ignore[method-assign]
-        service._engine.evaluate_setups = (  # type: ignore[method-assign]
-            lambda loaded: ([first, second], [])
-        )
-        service._engine.shared_entry = lambda e, d, t: False  # type: ignore[method-assign]
-        service._engine.score = (  # type: ignore[method-assign]
-            lambda loaded, accepted, ready: (
-                84 if accepted.setup is ScannerSetup.TREND_PULLBACK else 80,
-                75,
-                ScannerGrade.B_PLUS,
-                {},
-            )
+        cast(Any, service._engine).evaluate_setups = lambda loaded: ([first, second], [])
+        cast(Any, service._engine).shared_entry = lambda e, d, t: False
+        cast(Any, service._engine).score = lambda loaded, accepted, ready: (
+            84 if accepted.setup is ScannerSetup.TREND_PULLBACK else 80,
+            75,
+            ScannerGrade.B_PLUS,
+            {},
         )
         candidate, audits, _ = await service._evaluate_symbol(universe(), NOW, "run-1")
         assert candidate is not None
         assert candidate.setup is ScannerSetup.TREND_PULLBACK
         assert audits[0].code == "SUPERSEDED_BY_HIGHER_RANKED_SETUP"
 
-        service._engine.evaluate_setups = lambda loaded: ([], [])  # type: ignore[method-assign]
+        cast(Any, service._engine).evaluate_setups = lambda loaded: ([], [])
         candidate, audits, _ = await service._evaluate_symbol(universe(), NOW, "run-1")
         assert candidate is None
         assert audits[0].code == "SETUP_NOT_DETECTED"
 
     asyncio.run(scenario())
 
+
 def test_active_refresh_ready_and_failure_paths() -> None:
     async def scenario() -> None:
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         watch = _candidate_for_service()
-        watch.audit_codes = [
-            "ENTRY_NOT_READY", "GRADE_B_PLUS_WATCH_ONLY", "CONFIDENCE_WATCH_ONLY"
-        ]
+        watch.audit_codes = ["ENTRY_NOT_READY", "GRADE_B_PLUS_WATCH_ONLY", "CONFIDENCE_WATCH_ONLY"]
         service._candidates[watch.candidate_id] = watch
         service._candidate_contexts[watch.candidate_id] = _prepare_setup(
             ScannerDirection.LONG,
             ScannerSetup.TREND_PULLBACK,
         )
-        service._engine.invalidated = lambda candidate, s0, e0: False  # type: ignore[method-assign]
-        service._engine.shared_entry = lambda e, d, t: True  # type: ignore[method-assign]
-        service._engine.score = (  # type: ignore[method-assign]
-            lambda ctx, match, entry_ready: (
-                90,
-                75,
-                ScannerGrade.A_PLUS,
-                {"setup": Decimal("20")},
-            )
+        cast(Any, service._engine).invalidated = lambda candidate, s0, e0: False
+        cast(Any, service._engine).shared_entry = lambda e, d, t: True
+        cast(Any, service._engine).score = lambda ctx, match, entry_ready: (
+            90,
+            75,
+            ScannerGrade.A_PLUS,
+            {"setup": Decimal("20")},
         )
         run = await service.active_refresh()
         assert watch.lifecycle is CandidateLifecycle.QUALIFIED
@@ -517,7 +572,10 @@ def test_active_refresh_ready_and_failure_paths() -> None:
 
         failed = _candidate_for_service()
         service = ScannerService(
-            NoTimeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            NoTimeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         service._candidates[failed.candidate_id] = failed
         run = await service.active_refresh()
@@ -525,7 +583,10 @@ def test_active_refresh_ready_and_failure_paths() -> None:
         assert run.audits[0].code == "MARKET_TIME_UNAVAILABLE"
 
         service = ScannerService(
-            FakeMarket(), FakeUniverse(), FakeIndicators(), clock=FakeClock()  # type: ignore[arg-type]
+            FakeMarket(),
+            FakeUniverse(),
+            FakeIndicators(),
+            clock=FakeClock(),
         )
         service._candidates[failed.candidate_id] = failed
         service._candidate_contexts[failed.candidate_id] = _prepare_setup(

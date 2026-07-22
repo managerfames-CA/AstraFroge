@@ -6,7 +6,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, cast, List
 
 import pytest
 from fastapi import HTTPException
@@ -521,9 +521,9 @@ class _FacadeCommands:
 
 
 def test_facade_delegates_only_read_and_storage_methods() -> None:
-    facade = WorkerIsolatedExecutionService(  # type: ignore[arg-type]
-        _FacadeInner(),
-        _FacadeCommands(),  # type: ignore[arg-type]
+    facade: Any = WorkerIsolatedExecutionService(
+        cast(Any, _FacadeInner()),
+        cast(Any, _FacadeCommands()),
     )
     assert facade.status() == "status"
     assert facade.plans() == "plans"
@@ -531,7 +531,7 @@ def test_facade_delegates_only_read_and_storage_methods() -> None:
     assert facade.account() == "account"
     assert facade.get_trade("trade") == "trade"
     marker = object()
-    assert facade.store_trade(marker) is marker
+    assert facade.store_trade(cast(Any, marker)) is marker
     assert facade.marker == "delegated"
 
 
@@ -559,7 +559,7 @@ class _RouteService:
     def get(self, command_id: str) -> ExecutionCommand | None:
         return self.command
 
-    def history(self, command_id: str) -> list[ExecutionCommandTransition]:
+    def history(self, command_id: str) -> List[ExecutionCommandTransition]:
         return [
             ExecutionCommandTransition(
                 sequence=1,
@@ -591,9 +591,12 @@ async def test_command_observability_routes_cover_success_and_missing() -> None:
     assert (
         await execution_command_detail(command.command_id, service)  # type: ignore[arg-type]
     ) == command
-    assert len(
-        await execution_command_history(command.command_id, service)  # type: ignore[arg-type]
-    ) == 1
+    assert (
+        len(
+            await execution_command_history(command.command_id, service)  # type: ignore[arg-type]
+        )
+        == 1
+    )
     assert (await execution_worker_status(_RouteWorker())).worker_id == "worker"  # type: ignore[arg-type]
 
     missing = _RouteService(None)
@@ -623,9 +626,9 @@ def test_private_adapter_propagates_non_not_found_query_error() -> None:
         status_code=503,
         exchange_code=-1000,
     )
-    adapter = QueryBeforeRetrySnapshotPrivateClient(  # type: ignore[arg-type]
-        _PrivateRaw(error),
-        _Snapshots(),  # type: ignore[arg-type]
+    adapter = QueryBeforeRetrySnapshotPrivateClient(
+        cast(Any, _PrivateRaw(error)),
+        cast(Any, _Snapshots()),
     )
     with pytest.raises(BinanceDemoPrivateClientError) as exc:
         adapter._existing_algo_order(symbol="BTCUSDT", client_order_id="id")

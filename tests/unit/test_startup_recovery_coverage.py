@@ -334,7 +334,7 @@ def test_guarded_execution_exposes_recovery_status_and_blocks_plans() -> None:
     assert service.trades().trades == []
     assert service.account().can_trade is True
     assert service.get_trade("trade-1") is not None
-    stored = SimpleNamespace(trade_id="trade-2")
+    stored: Any = SimpleNamespace(trade_id="trade-2")
     assert service.store_trade(cast(Any, stored)) is stored
     assert service.marker == "delegated"
 

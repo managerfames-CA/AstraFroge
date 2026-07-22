@@ -74,10 +74,9 @@ def test_signal_adapter_writes_history_and_recovers(
 
     with repositories.persistence.transaction() as session:
         signal_count = session.scalar(select(func.count()).select_from(SignalRow))
-        history_count = session.scalar(
-            select(func.count()).select_from(SignalLifecycleRow)
-        )
+        history_count = session.scalar(select(func.count()).select_from(SignalLifecycleRow))
     assert signal_count == 3
+    assert history_count is not None
     assert history_count >= 4
 
 
@@ -196,9 +195,7 @@ def test_trade_management_close_updates_durable_trade(
     close_client = StubCloseClient(
         exit_price="105",
         close_quantity="0.107",
-        income_payload=[
-            {"symbol": opened.symbol, "incomeType": "REALIZED_PNL", "income": "0.535"}
-        ],
+        income_payload=[{"symbol": opened.symbol, "incomeType": "REALIZED_PNL", "income": "0.535"}],
     )
     management = TradeManagementService(execution, close_client)
 

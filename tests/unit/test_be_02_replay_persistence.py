@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
+from typing import Any
 
 from app.core.security import MutationReplayGuard, ReplayClaimResult
 from app.persistence.database import Persistence
@@ -18,7 +19,7 @@ def _repositories(database_url: str) -> TradingStateRepositories:
     return TradingStateRepositories(persistence)
 
 
-def test_replay_claim_survives_process_restart(tmp_path) -> None:
+def test_replay_claim_survives_process_restart(tmp_path: Any) -> None:
     database_url = f"sqlite+pysqlite:///{tmp_path / 'be02-restart.db'}"
 
     first = _repositories(database_url)
@@ -57,7 +58,7 @@ def test_replay_claim_survives_process_restart(tmp_path) -> None:
     assert replay is ReplayClaimResult.REPLAY
 
 
-def test_shared_database_coordinates_separate_application_instances(tmp_path) -> None:
+def test_shared_database_coordinates_separate_application_instances(tmp_path: Any) -> None:
     database_url = f"sqlite+pysqlite:///{tmp_path / 'be02-multi-instance.db'}"
     first = _repositories(database_url)
     second = _repositories(database_url)

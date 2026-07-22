@@ -248,7 +248,7 @@ def test_openapi_marks_mutations_as_bearer_protected_with_required_idempotency()
 
 
 def test_replay_state_is_durable_across_app_restart(
-    tmp_path,
+    tmp_path: Any,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     database_url = f"sqlite+pysqlite:///{tmp_path / 'replay.db'}"
@@ -278,7 +278,7 @@ def test_replay_state_is_durable_across_app_restart(
 
 
 def test_idempotency_key_reuse_for_different_request_is_durable_across_restart(
-    tmp_path,
+    tmp_path: Any,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     database_url = f"sqlite+pysqlite:///{tmp_path / 'replay-reuse.db'}"

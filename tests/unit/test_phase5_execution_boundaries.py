@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -71,9 +71,9 @@ def test_existing_protection_is_reused_before_submission() -> None:
         "status": "NEW",
     }
     raw = _RawPrivateClient([existing])
-    adapter = QueryBeforeRetrySnapshotPrivateClient(  # type: ignore[arg-type]
-        raw,
-        _Snapshots(),  # type: ignore[arg-type]
+    adapter = QueryBeforeRetrySnapshotPrivateClient(
+        cast(Any, raw),
+        cast(Any, _Snapshots()),
     )
 
     assert _submit(adapter) == existing
@@ -88,9 +88,9 @@ def test_missing_protection_is_submitted_once() -> None:
         "status": "NEW",
     }
     raw = _RawPrivateClient([_not_found(), placed])
-    adapter = QueryBeforeRetrySnapshotPrivateClient(  # type: ignore[arg-type]
-        raw,
-        _Snapshots(),  # type: ignore[arg-type]
+    adapter = QueryBeforeRetrySnapshotPrivateClient(
+        cast(Any, raw),
+        cast(Any, _Snapshots()),
     )
 
     assert _submit(adapter) == placed
@@ -106,9 +106,9 @@ def test_lost_protection_response_is_recovered_by_identity_query() -> None:
     }
     submission_error = BinanceDemoPrivateClientError("Connection lost after submit")
     raw = _RawPrivateClient([_not_found(), submission_error, recovered])
-    adapter = QueryBeforeRetrySnapshotPrivateClient(  # type: ignore[arg-type]
-        raw,
-        _Snapshots(),  # type: ignore[arg-type]
+    adapter = QueryBeforeRetrySnapshotPrivateClient(
+        cast(Any, raw),
+        cast(Any, _Snapshots()),
     )
 
     assert _submit(adapter) == recovered
@@ -137,9 +137,9 @@ class _Commands:
 def test_compatibility_facade_cannot_submit_new_entry() -> None:
     inner = _InnerExecution()
     commands = _Commands()
-    facade = WorkerIsolatedExecutionService(  # type: ignore[arg-type]
-        inner,
-        commands,  # type: ignore[arg-type]
+    facade = WorkerIsolatedExecutionService(
+        cast(Any, inner),
+        cast(Any, commands),
     )
 
     with pytest.raises(AppError) as exc:
