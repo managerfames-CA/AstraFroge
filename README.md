@@ -37,7 +37,7 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 - [ ] BE-24: Run and pass Docker build verification.
 - [x] BE-25: Confirm the latest direct main commits have successful GitHub Actions evidence. (Evidence: [docs/BE_25_COMPLETION_EVIDENCE.md](docs/BE_25_COMPLETION_EVIDENCE.md))
 - [ ] BE-26: Keep README progress, merged PR status and current task synchronized with repository reality.
-- [ ] BE-27: Verify deployed health, market, Scanner, Signal, Risk and Demo read-only endpoints.
+- [x] BE-27: Verify deployed health, market, Scanner, Signal, Risk and Demo read-only endpoints. (Evidence: [docs/BE_27_COMPLETION_EVIDENCE.md](docs/BE_27_COMPLETION_EVIDENCE.md))
 - [ ] BE-28: Verify protected mutation authentication and idempotency against the deployed Demo runtime.
 - [ ] BE-29: Complete frontend-connected runtime testing without enabling real trading.
 - [ ] BE-30: Run a final backend security and production-readiness audit.
@@ -72,3 +72,4 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 | **BE-23** | Run and pass FastAPI import smoke verification. | [docs/BE_23_COMPLETION_EVIDENCE.md](docs/BE_23_COMPLETION_EVIDENCE.md) | PR #4 / Branch jules-be-23-smoke-verification | Completed |
 | **BE-24** | Run and pass Docker build verification. | [docs/BE_24_COMPLETION_EVIDENCE.md](docs/BE_24_COMPLETION_EVIDENCE.md) | Branch jules-be-24-docker-build | Completed |
 | **BE-25** | Confirm the latest direct main commits have successful GitHub Actions evidence. | [docs/BE_25_COMPLETION_EVIDENCE.md](docs/BE_25_COMPLETION_EVIDENCE.md) | PR #6 / Commit `b7f6c965bea72c094d1dc1e7f8969b72b67c6a06` | Completed |
+| **BE-27** | Verify deployed health, market, Scanner, Signal, Risk and Demo read-only endpoints. | [docs/BE_27_COMPLETION_EVIDENCE.md](docs/BE_27_COMPLETION_EVIDENCE.md) | Branch jules-9767184021033443734-e11f0478 | Completed |
