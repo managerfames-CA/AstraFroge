@@ -73,6 +73,7 @@ class OrderAuditStatusResponse(BaseModel):
     """Summary of the latest order-audit reconciliation."""
 
     state: OrderAuditState
+    contract_version: str = "1"
     checked_at: datetime
     tracked_trade_count: int = Field(ge=0)
     audited_order_count: int = Field(ge=0)

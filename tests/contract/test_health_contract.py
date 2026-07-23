@@ -149,3 +149,53 @@ def test_openapi_contains_verified_runtime_routes(client: TestClient) -> None:
         "/api/v1/trade-management/trades",
         "/api/v1/universe",
     }
+
+
+def test_contract_version_consistent_across_status_endpoints(client: TestClient) -> None:
+    import os
+
+    from app.api.v1.notification_dependencies import get_notification_service
+    from app.persistence.database import Persistence
+    from app.persistence.models import Base
+    from app.persistence.notification_models import NotificationRow  # noqa: F401
+    from app.services.notifications import NotificationService
+
+    db_path = "test_health_notifications.db"
+    if os.path.exists(db_path):
+        try:
+            os.remove(db_path)
+        except Exception:
+            pass
+
+    persistence = Persistence(f"sqlite:///{db_path}")
+    Base.metadata.create_all(persistence.engine)
+    dummy_service = NotificationService(persistence)
+    client.app.dependency_overrides[get_notification_service] = lambda: dummy_service
+
+    endpoints = [
+        "/api/v1/system/status",
+        "/api/v1/scanner/status",
+        "/api/v1/signals/status",
+        "/api/v1/risk/status",
+        "/api/v1/execution/demo/status",
+        "/api/v1/trade-management/status",
+        "/api/v1/order-audit/status",
+        "/api/v1/journal-performance/status",
+        "/api/v1/notifications/status",
+    ]
+    try:
+        for endpoint in endpoints:
+            response = client.get(endpoint)
+            assert response.status_code == 200, f"Failed at {endpoint}: {response.text}"
+            body = response.json()
+            assert body.get("contract_version") == "1", (
+                f"contract_version missing/incorrect in {endpoint}"
+            )
+    finally:
+        client.app.dependency_overrides.pop(get_notification_service, None)
+        persistence.close()
+        if os.path.exists(db_path):
+            try:
+                os.remove(db_path)
+            except Exception:
+                pass

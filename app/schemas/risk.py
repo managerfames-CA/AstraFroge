@@ -110,6 +110,7 @@ class RiskStatusResponse(BaseModel):
     """Current deterministic risk-engine state and verified account snapshot."""
 
     state: RiskEngineState
+    contract_version: str = "1"
     risk_engine_implemented: bool = True
     signal_engine_required: bool = True
     signal_engine_state: str

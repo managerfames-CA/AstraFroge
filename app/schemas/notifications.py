@@ -73,6 +73,7 @@ class NotificationListResponse(BaseModel):
 class NotificationStatusResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    contract_version: str = "1"
     unread_count: int = Field(ge=0)
     total_count: int = Field(ge=0)
     is_active: bool

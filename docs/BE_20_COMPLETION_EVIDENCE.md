@@ -136,12 +136,11 @@ This was resolved by shortening the test function name:
 # Before
 def test_be17_07_auto_start_true_with_non_postgresql_persistence_does_not_claim_safe_ownership() -> (
     None
-):
-    ...
+): ...
+
 
 # After
-def test_be17_07_autostart_non_postgres_no_safe_ownership() -> None:
-    ...
+def test_be17_07_autostart_non_postgres_no_safe_ownership() -> None: ...
 ```
 
 ---
