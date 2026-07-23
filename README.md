@@ -33,8 +33,6 @@ Frontend repository: `zahirulca24-bit/AstraForge-Crypto-Frontend`
 - [ ] BE-22: Run and pass the full Pytest suite with the required coverage threshold.
 - [x] BE-23: Run and pass FastAPI import smoke verification. (Evidence: [docs/BE_23_COMPLETION_EVIDENCE.md](docs/BE_23_COMPLETION_EVIDENCE.md))
 - [x] BE-24: Run and pass Docker build verification. (Evidence: [docs/BE_24_COMPLETION_EVIDENCE.md](docs/BE_24_COMPLETION_EVIDENCE.md))
-- [ ] BE-25: Confirm the latest direct main commits have successful GitHub Actions evidence.
-- [ ] BE-24: Run and pass Docker build verification.
 - [x] BE-25: Confirm the latest direct main commits have successful GitHub Actions evidence. (Evidence: [docs/BE_25_COMPLETION_EVIDENCE.md](docs/BE_25_COMPLETION_EVIDENCE.md))
 - [ ] BE-26: Keep README progress, merged PR status and current task synchronized with repository reality.
 - [x] BE-27: Verify deployed health, market, Scanner, Signal, Risk and Demo read-only endpoints. (Evidence: [docs/BE_27_COMPLETION_EVIDENCE.md](docs/BE_27_COMPLETION_EVIDENCE.md))
