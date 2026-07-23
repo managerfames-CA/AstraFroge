@@ -161,6 +161,7 @@ class DemoExecutionStatusResponse(BaseModel):
     """Current demo execution status and truthful lock state."""
 
     state: DemoExecutionState
+    contract_version: str = "1"
     demo_execution_implemented: bool = True
     execution_enabled: bool
     demo_credentials_configured: bool

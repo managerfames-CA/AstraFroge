@@ -109,6 +109,7 @@ class JournalPerformanceStatusResponse(BaseModel):
     """Current verified-source Journal readiness and headline metrics."""
 
     state: JournalPerformanceState
+    contract_version: str = "1"
     journal_performance_implemented: bool = True
     verified_exchange_sources_required: bool = True
     verified_fill_pnl_required: bool = True

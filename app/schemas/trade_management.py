@@ -66,6 +66,7 @@ class TradeManagementStatusResponse(BaseModel):
     """Current trade-management readiness and open-trade summary."""
 
     state: TradeManagementState
+    contract_version: str = "1"
     trade_management_implemented: bool = True
     exchange_authoritative_active_trades: bool = False
     execution_engine_state: str

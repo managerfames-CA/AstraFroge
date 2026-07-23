@@ -24,6 +24,7 @@ class ReadyResponse(StrictResponseModel):
 
 
 class SystemStatusResponse(StrictResponseModel):
+    contract_version: str = "1"
     service: str
     version: str
     environment: str
