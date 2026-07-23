@@ -248,7 +248,7 @@ def _coordinator(
     signals: _Signals | None = None,
     execution: _Execution | None = None,
     private: _Private | None = None,
-    persistence: Persistence | None | object = _PERSISTENCE_DEFAULT,
+    persistence: Persistence | object | None = _PERSISTENCE_DEFAULT,
 ) -> StartupRecoveryCoordinator:
     persisted = None if persistence is None else cast(Persistence, persistence)
     return StartupRecoveryCoordinator(
